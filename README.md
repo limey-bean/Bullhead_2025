@@ -13,16 +13,16 @@ A repository for scripts used to generate the 2025 Brown Bullhead data analysis
 
 ## Mitochondrial DNA Processing and Data Analysis
 ### SNV Calling
-#### Phylogenetic Tree Based on Genotype
+Phylogenetic Tree Based on Genotype
 ### Mitogenome resonstruction
-#### Phased Mitogenome Phylogenetic tree
+Phased Mitogenome Phylogenetic tree
 
 ## Nuclear DNA Processing and Data Analysis
 ### SNV Calling
-#### HaplotypeCaller
-#### Mutect2
+HaplotypeCaller
+Mutect2
 ### SV Calling
-#### Short Read DNA
-#### Long Read DNA
+Short Read DNA
+Long Read DNA
 
 ## Human TCGA Scripts
