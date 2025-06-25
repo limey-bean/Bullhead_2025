@@ -1,5 +1,7 @@
+# Pegasus requires singularity or apptainer
 module load singularity
 
+# command to run Pegasus. For more details see: https://github.com/jaxlub/PEGASUS
 ~/PEGASUS/pegasus.sh \
             -n ~/HL4/Long_reads/HL4_no_mito.fastq.gz \
             -s1 ~/HL4/reads/short_reads1  \
