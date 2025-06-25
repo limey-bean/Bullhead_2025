@@ -2,7 +2,7 @@
 A repository for scripts used to generate the 2025 Brown Bullhead data analysis
 
 ## Raw Data Processing
-Contains scripts to process seqeunces generated for
+Contains scripts to process sequences generated for
 1. RNAseq
 2. Short Read DNA
 3. Long Read DNA
@@ -13,7 +13,7 @@ Contains scripts to build the
 2. Draft Nuclear Genome with PEGASUS
 
 ## Mitochondrial DNA Processing and Data Analysis
-### SNV Calling
+### Mitochondrial SNV Calling
 Phylogenetic Tree Based on Genotype
 ### Mitogenome resonstruction
 Phased Mitogenome Phylogenetic tree
