@@ -1,15 +1,16 @@
 # Bullhead 2025 Data Analysis
 A repository for scripts used to generate the 2025 Brown Bullhead data analysis
 
-## Draft Genome Builds
-### HL4 Mitochondrial Genome
-### HL4 Nuclear Genome
-
-
 ## Raw Data Processing
-### RNAseq
-### Short Read DNA
-### Long Read DNA
+Contains scripts to process seqeunces generated for
+1. RNAseq
+2. Short Read DNA
+3. Long Read DNA
+
+## Genome Build
+Contains scripts to build the 
+1. Mitochondrial Genome
+2. Draft Nuclear Genome with PEGASUS
 
 ## Mitochondrial DNA Processing and Data Analysis
 ### SNV Calling
