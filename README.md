@@ -1,11 +1,12 @@
 # Bullhead 2025 Data Analysis
 A repository for scripts used to generate the 2025 Brown Bullhead data analysis
 
+**Note I ran these analyses on the High Performance Compute Cluster at the University of Vermont’s Vermont Advanced Computing Center (VACC; RRID:SCR_017762).  I do not include the slurm commands or the arrays used to process multiple samples simultaneously. Presented in this repository are the base commands used to run software or modify outputs from software.**
+
 ## Raw Data Processing
 Contains scripts to process sequences generated for
-1. RNAseq
-2. Short Read DNA
-3. Long Read DNA
+1. Short Read RNA and DNA
+2. Long Read DNA
 
 ## Genome Build
 Contains scripts to build the 
