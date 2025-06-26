@@ -3,6 +3,8 @@
 # Nanopore sequencers collect sequence and base modification signal data and store it in a pod5 ( or an older version called a fast5 file) file. All fast5 files have to be converted to pod5 files for base calling with newer vesions of dorado.
 # We re-basecalled all long reads with the same version of dorado, but only called one run at a time. Bam files were merged by sample after basecalling.
 
+# all new directories were made prior to running software.
+
 #######
 # convert fast5 data to pod5 data using Pod5 version: 0.3.10
 #######
