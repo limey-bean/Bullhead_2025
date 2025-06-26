@@ -11,7 +11,9 @@ Contains scripts to process sequences generated for
 ## Genome Build
 Contains scripts to build the 
 1. Mitochondrial Genome
-2. Draft Nuclear Genome with PEGASUS
+2. Draft Nuclear Genome:
+   * hybrid assembly with PEGASUS
+   * annotation funnanotate 
 
 ## Mitochondrial DNA Processing and Data Analysis
 ### Mitochondrial SNV Calling
