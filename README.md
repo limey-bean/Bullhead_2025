@@ -16,17 +16,24 @@ Contains scripts to build the
    * annotation funnanotate 
 
 ## Mitochondrial DNA Processing and Data Analysis
-### Mitochondrial SNV Calling
-Phylogenetic Tree Based on Genotype
-### Mitogenome resonstruction
-Phased Mitogenome Phylogenetic tree
+Contains scripts to
+1. Call Mitochondrial SNV
+   * Short read data
+   * Long read data
+2. Phase Mitochondria
+3. Build phylogenetic trees using
+  * SNVs
+  * Mitochondrial reads
+4. Identify SNPs
 
 ## Nuclear DNA Processing and Data Analysis
-### SNV Calling
-HaplotypeCaller
-Mutect2
-### SV Calling
-Short Read DNA
-Long Read DNA
+Contains scripts to
+1. Call Nuclear SNVs
+   * HaplotypeCaller
+   * Mutect2
+2. Call Nuclear SNVs
+   * Delly for Short Read DNA
+   * Sniffles for Long Read DNA
+3. Count tissue specific variants
 
 ## Human TCGA Scripts
