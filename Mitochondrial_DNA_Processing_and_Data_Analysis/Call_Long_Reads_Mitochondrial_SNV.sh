@@ -169,3 +169,25 @@ gatk --java-options "-Xms48G -Xmx48G -XX:ParallelGCThreads=2" \
       SelectVariants -R ${ref_genome} -V /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_filtered.vcf.gz \
       -O /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean.vcf.gz  --exclude-filtered
 
+######
+# Use vcftools to Filter out SNVs that are not found in at least 90% of samples and with at least 10 x coverage - then change name, compress, and index
+######
+
+vcftools --vcf /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean.vcf.gz --minDP 10 --max-missing 0.9  --recode --out /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x
+
+mv /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.recode.vcf /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.vcf
+
+bgzip /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.vcf
+tabix /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.vcf.gz
+
+######
+# Use BCFtools to extract allele frequency
+#####
+
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.vcf.gz > /${workdir}/comb_and_genotype_VFC_long_dna/long_TN_mito_snps-and-indels_clean_0.9_10x.AD.txt
+
+
+
+
+
+
