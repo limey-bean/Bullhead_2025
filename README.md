@@ -31,7 +31,7 @@ Contains scripts to
 1. Call Nuclear SNVs
    * HaplotypeCaller
    * Mutect2
-2. Call Nuclear SNVs
+2. Call Nuclear SVs
    * Delly for Short Read DNA
    * Sniffles for Long Read DNA
 3. Count tissue specific variants
