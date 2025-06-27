@@ -17,7 +17,7 @@ library(vtable)
 
 ```
 
-### set paths / variables
+### Set paths / variables
 ```{r}
 outpath <- "path to output dir"
 
@@ -29,6 +29,7 @@ mito_fasta <- "path_to_input/HL4_ann.final-mtgrasp_v1.1.8-assembly.fa"
 
 ```
 
+### Parse vcf
 ```{r}
 vcf <- read.vcfR(vcf_file, verbose = FALSE )
 
@@ -43,7 +44,7 @@ f <- G$gt$gt_AD
 
 ```
 
-## Make a dataframe from the mito genome fasta file.    
+### Make a dataframe from the mito genome fasta file.    
 ```{r}
 
 fastaFile <- readDNAStringSet(mito_fasta)
