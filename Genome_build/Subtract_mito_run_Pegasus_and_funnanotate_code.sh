@@ -157,6 +157,7 @@ funannotate \
 ######################
 # annotate final 
 ######################
+
 # I ran the ${genome}Fun_out/predict_results/HL4_no_scaffold_masked_assembly.proteins.fa through the eggnog_mapper annotation webserver (http://eggnog-mapper.embl.de) and added the output to:
 mkdir ${genome}Fun_out/eggnog_mapper_out/
 
@@ -165,3 +166,10 @@ funannotate \
      --isolate HL4 --busco_db ${path_toFunannotate_db}/actinopterygii -d ${path_toFunannotate_db} --species "Ameiurus nebulosus"
 
 
+#######
+# Index ref genome with samtools and gatk
+######
+
+samtools faidx <path to>/A_nebulosus_HL4.scaffolds.fa
+samtools index <path to>/A_nebulosus_HL4.scaffolds.fa 
+gatk CreateSequenceDictionary -R <path to>/A_nebulosus_HL4.scaffolds.fa
