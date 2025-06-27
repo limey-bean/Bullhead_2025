@@ -4,7 +4,7 @@ author: "Emily Curd"
 output: pdf_document
 ---
 
-{r setup}
+```{r setup}
 
 library(vcfR)
 library(stringr)
@@ -15,16 +15,22 @@ library(bedr)
 library("Biostrings")
 library(vtable)
 
+```
 
-{r}
-outpath <- "path for the output"
+### set paths / variables
+```{r}
+outpath <- "path to output dir"
 
 dir.create(outpath, showWarnings = FALSE)
 
-vcf_file <- "path to input VCF"
-vcf <- read.vcfR(vcf_file, verbose = FALSE )
-#head(vcf)
+vcf_file <- "path_to_input/*_TN_mito_snps-and-indels_clean.vcf.gz"
 
+mito_fasta <- "path_to_input/HL4_ann.final-mtgrasp_v1.1.8-assembly.fa"
+
+```
+
+```{r}
+vcf <- read.vcfR(vcf_file, verbose = FALSE )
 
 G <- vcfR2tidy(vcf, format_fields = c("GT", "AD", "DP"))
 base <- G$fix %>% select(POS, REF)
@@ -35,10 +41,12 @@ freq_allele <- base %>% select(POS)
 
 f <- G$gt$gt_AD
 
+```
 
-{r}
 
-fastaFile <- readDNAStringSet("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/mito_N1_N2/HL4_ann.final-mtgrasp_v1.1.8-assembly.fa")
+```{r}
+
+fastaFile <- readDNAStringSet(mito_fasta)
 sequence = paste(fastaFile)
 REFa <- strsplit(sequence, "")[[1]] 
 # Create a data frame
@@ -46,8 +54,9 @@ REF_seq_df <- as.data.frame(REFa, stringsAsFactors = FALSE)
 # View the result
 REF_seq_df <- REF_seq_df %>% mutate(POS = 1:n()) %>% select(POS,REFa) %>% filter(!POS %in% c(15815,15674,11734,11733,11732,11731,11730,11729,11728,11727,11726,11725,11724,11723,11722,2767,2766,2765,2764,2763,945,944))
 
+```
 
-{r}
+```{r}
 
 #i <- m %>% distinct(Indiv)
 #individuals <- as.list(i)
@@ -56,8 +65,9 @@ REF_seq_df <- REF_seq_df %>% mutate(POS = 1:n()) %>% select(POS,REFa) %>% filter
 #individuals <- c("vt1_02","vt1_02","vt1_03","vt1_05","vt1_07","vt2_02","vt2_05","vt2_05","vt2_06","vt2_10","vt2_14","vt2_16","vt2_18","vt2_23","vt2_23","vt2_28","vt2_29R","vt2_30","vt2_30","vt2_32","vt2_37","vt2_40")
 
 individuals <- c("BS1")#,"BS4","FB8N","FB8T","HC14","HC2N","HC2T","HC4N","HC4T","HL3","HL4","JR11","JR19","JR9N","JR9T","LB1","LB2","MA18","MA1N","MA1T","SB14N","SB14T","SC1","SC6N","SC6T","SC7N","SC7T","SML13","SML1N","SML1T","SML4N","SML4T","SP2","SP3")
+```
 
-{r}
+```{r}
 hom_list <- "is_hom"
 het_list <- "is_het"
 messy <- "is_messy"
@@ -176,12 +186,13 @@ for (ind in individuals){
 
 
 
+```
 
 fix messy
 
 "SC7T","HC2T","ME7S","SB14T","FB8T","JR9T","MA1T" "ME5S" "ME8S" "ME9S" "SC6T" "SML1T" "SML4T" "vt1_07" "vt2_02" "vt2_05" "vt2_06" "vt2_18" "vt2_28" "vt2_29R" "vt2_30" "vt2_32" "vt2_37" "vt2_40"
 
-{r}
+```{r}
 
 individualsS <- c("SB14","FB8")
 
@@ -317,8 +328,9 @@ for (ind in individualsS){
   
 }  
 
+```
 
-{r}
+```{r}
 individualsT <- c("FB8","HC2","JR9","MA1","SB14","SC6","SC7","SML1","SML4","HC4")
 
 for (ind in individualsT){  
@@ -452,11 +464,13 @@ for (ind in individualsT){
   
 }  
 
+```
 
-{r}
+```{r}
 write_csv(freq_allele, paste0(outpath,"ALL_2N_vcf_allele_frequencies.csv"))
+```
 
-{r}
+```{r}
 columns= c("Variable", "NotNA","Mean","Sd","Median","Min","Max" ) 
  
 sum_vcf_alleles = data.frame(matrix(nrow = 0, ncol = length(columns))) 
@@ -488,8 +502,9 @@ write_csv(sum_vcf_alleles, file=paste0(outpath,"Sum_stats_hets_2N_vcf_allele_fre
 
 
 
+```
 
-{r}
+```{r}
 gt_AD <- extract.gt(vcf, element="AD")
 
 
@@ -511,5 +526,4 @@ TReffreq <- round(ad1_freq / Ttot,  digits=2)
 TReffreq <- as.data.frame(TReffreq)%>% rownames_to_column()
 write_csv(TReffreq,"longDNAseq_mitoref_freq.csv")
 
-
-
+```
