@@ -9,7 +9,7 @@ sample=<sample name>
 mito_ref=<path to>/HL4_ann.final-mtgrasp_v1.1.8-assembly.fa
 dir_path=<path to long read mitochondrial mapping output>
 raw_sample_path=${merged_bam}/bam/All_${sample}.bam
-workdir=${dir_path}/Mito_Variant_Calling/
+workdir=${dir_path}/Mito_Variant_Calling_long/
 
 mkdir -p ${workdir}/comb_and_genotype_VFC_long_dna/
 
