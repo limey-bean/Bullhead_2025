@@ -68,7 +68,7 @@ individuals <- c("FB1","FB15","FB5","HC1","JR13","JR14","LB1","MA15","MA18","SC1
 #individuals <- c("BS1")#,"BS4","FB8N","FB8T","HC14","HC2N","HC2T","HC4N","HC4T","HL3","HL4","JR11","JR19","JR9N","JR9T","LB1","LB2","MA18","MA1N","MA1T","SB14N","SB14T","SC1","SC6N","SC6T","SC7N","SC7T","SML13","SML1N","SML1T","SML4N","SML4T","SP2","SP3")
 ```
 
-### Determine if the sample is Homozygous, Heterozygous and clean (e.g. Variant Allele Freqeuncy is <40 or >60), or Heterozygous and messy (e.g. Variant Allele Freqeuncy is 40 > or < 60).  If it is messy and a tumor sample you can use the normal to phase mitochondria.  If you do not have a paired sample (e.g. RNAseq) you have to make some judgement calls.
+### Determine if the sample is Homozygous, Heterozygous and clean (e.g. Variant Allele Freqeuncy is <40 or >60), or Heterozygous and messy (e.g. Variant Allele Freqeuncy is 40 > or < 60).  If it is messy and a tumor sample you can use the normal to phase mitochondria.  If you do not have a paired sample (e.g. RNAseq) you have to make some judgement calls.  It it is homozygous or clean heterozygous, it will pop out a fasta or two fasta files for each sample.
 
 ```{r}
 hom_list <- "is_hom"
@@ -192,7 +192,7 @@ for (ind in individuals){
 
 
 
-### Subtract host reads from tumor tissue using normal brain tissue - use for messy paired tumors or any paired tumors
+### Subtract host reads from tumor tissue using normal brain tissue - use for messy paired tumors or any paired tumors. It will pop out a fasta or two fasta files for each sample. Note - none of the brain samples in the BBH study had SNVs and it might behave strangley if your host sample has an SNV.
 
 ```{r}
 individualsT <- c("FB8","HC2","JR9","MA1","SB14","SC6","SC7","SML1","SML4","HC4")
@@ -333,22 +333,4 @@ for (ind in individualsT){
 
 ```{r}
 write_csv(freq_allele, paste0("path to output directory/ALL_2N_vcf_ref_allele_frequencies.csv"))
-```
-
-### get variant allele freqeuncies for each sample
-```{r}
-gt_AD <- extract.gt(vcf, element="AD")
-
-
-ad1_freq <- AD_frequency(gt_AD, delim = ",", allele = 1L, sum_type = 0L, decreasing = 1L)
-ad2_freq <- AD_frequency(gt_AD, delim = ",", allele = 2L, sum_type = 0L, decreasing = 1L)
-
-
-Ttot <- ad1_freq + ad2_freq
-TAltfreq <- round(ad2_freq / Ttot,  digits=2)
-TReffreq <- round(ad1_freq / Ttot,  digits=2)
-
-TReffreq <- as.data.frame(TReffreq)%>% rownames_to_column()
-write_csv("path to putput/DNAseq_mito_VAF.csv")
-
 ```
