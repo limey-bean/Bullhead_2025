@@ -1,0 +1,103 @@
+---
+title: "human_melanoma"
+author: "Sam Hart"
+date: "2025-04-07"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+setwd("\\\\gs-ddn2/gs-vol1/home/sfhart/github/AMSD_cancer_mutation_spectra/scripts")
+
+
+```
+
+```{r}
+tcga_snvs <- read.table("\\\\gs-ddn2/gs-vol1/home/sfhart/pcawg/tcga/tcga_snvs_vaf.txt",
+                        sep="\t",
+                        header = FALSE)  %>%
+  separate(V5,
+           into = c("a","b","c",NA,NA,NA,NA),
+           sep = "-",
+           remove = FALSE) %>%
+  mutate(IID = paste(a,b,c,sep = "-")) %>%
+  select(-a,-b,-c)
+colnames(tcga_snvs) <- c("chr", "pos","ref", "alt", "ID", "depth", "ref_count", "alt_count", "IID")
+
+tumor_lookup <- read.table("\\\\gs-ddn2/gs-vol1/home/sfhart/github/AMSD_cancer_mutation_spectra/inputs/tcga_ancestry_calls.txt",
+                        header=TRUE,
+                        comment.char="",
+                        sep = "\t") %>%
+  select(IID = patient, tumor_type) 
+
+SKCMs <- tumor_lookup %>%
+  filter(tumor_type == "SKCM") %>%
+  pull(IID)
+
+tcga_skcm <- filter(tcga_snvs, IID %in% SKCMs)
+tcga_skcm %>%
+  count(IID) %>%
+ggplot(aes(n))+
+  geom_histogram()
+tcga_skcm2 <- tcga_skcm %>%
+  mutate(snp = paste0(chr,"-",pos,".",ref,">",alt)) %>%
+  #filter(alt_count/depth > 0.15) %>%
+  select(IID,snp) %>%
+  unique()
+
+tcga_skcm2_n <- count(tcga_skcm2, snp) %>%
+  arrange(desc(n))
+
+tcga_skcm2_n  %>%
+  mutate(count = case_when(n < 6 ~ as.character(n),
+                           n >= 6 ~ "6+")) %>%
+  count(count) %>%
+  ggplot(aes(x = count, y = n)) +
+    geom_col()+
+  labs(x = "Number of melanomas sharing somatic mutation (n=463)",
+       y = "Number of SNVs") +
+  geom_text(aes(label = n), vjust = -0.5) + 
+  theme_classic()
+```
+
+```{r}
+
+
+perm <- 1
+output <- data.frame()
+set.seed(12345)
+
+for(perm in 1:100){
+tcga_skcm <- filter(tcga_snvs, IID %in% sample(SKCMs, 6))
+tcga_skcm2 <- tcga_skcm %>%
+  mutate(snp = paste0(chr,"-",pos,".",ref,">",alt)) %>%
+  #filter(alt_count/depth > 0.15) %>%
+  select(IID,snp) %>%
+  unique()
+tcga_skcm2_n <- count(tcga_skcm2, snp) %>%
+  arrange(desc(n))
+result <- tcga_skcm2_n  %>%
+  mutate(count = factor(n, levels = c(1, 2, 3, 4, 5, 6))) %>%
+  count(count, .drop = FALSE) %>%
+  mutate(rep = perm)
+  output <- rbind(output, result)
+}
+output_mean <- output %>%
+  group_by(count) %>%
+  summarize(mean = mean(n), sd = sd(n))
+
+output 
+output_mean 
+output %>%
+  ggplot(aes(x = count, y = n))+
+    geom_boxplot(outlier.shape = NA) +
+    ylim(0,16000)+
+    geom_text(data = output_mean, aes(x = count, y = 15000, label = round(mean, 2)))+
+    geom_text(x = 1, y = 15000, label = "mean=                ")+
+  labs(x = "Number of melanomas sharing somatic mutation (n=6 randomly sampled)",
+       y = "Number of SNVs",
+       title = "100 permutations, randomly sampling 6 melanomas from TCGA") +
+  theme_classic()
+
+```
+
