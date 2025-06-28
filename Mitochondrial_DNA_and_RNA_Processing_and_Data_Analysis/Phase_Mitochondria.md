@@ -23,7 +23,7 @@ outpath <- "path to output dir"
 
 dir.create(outpath, showWarnings = FALSE)
 
-vcf_file <- "path_to_input/*_TN_mito_snps-and-indels_clean.vcf.gz"
+vcf_file <- "path_to_input/*_TN_mito_snps-and-indels_clean_0.9_10x.vcf.gz"
 
 mito_fasta <- "path_to_input/HL4_ann.final-mtgrasp_v1.1.8-assembly.fa"
 
