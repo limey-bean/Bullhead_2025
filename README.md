@@ -37,3 +37,6 @@ Contains scripts to
 3. Count tissue specific variants
 
 ## Human TCGA Scripts
+Contains
+1. Scripts to parse Human melanoma SNVs.
+2. Data files required to run the script.
