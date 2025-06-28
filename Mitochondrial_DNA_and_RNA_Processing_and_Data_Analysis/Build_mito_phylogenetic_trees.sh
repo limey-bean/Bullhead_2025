@@ -3,7 +3,7 @@
 ######################################
 
 ##########
-# first concatonate the fasta files or interest into one mutlifasta file
+# concatonate the fasta files or interest into one mutlifasta file
 ##########
 
 cat path_to_fastas/*.fasta > mito_reads.fasta
@@ -25,6 +25,44 @@ mafft mito_reads.fasta > mito_reads.align.fasta
 iqtree -s mito_reads.align.fasta -alrt 1000 -bb 1000  -safe 
 
 # generated the figures using the output mito_reads.align.fasta.contree
+
+
+########
+# get SNP sites from the mutlifasta file
+########
+
+snp-sites -o test.snpsites_aln.tsv test.aln.fasta 
+snp-sites -v -o test.snpsites_vcf.tsv test.aln.fasta 
+
+# Manually combind the outputs so that the sample names are column names and position in the mito genome are row names. Change "HL_Hap1_2N_vcf" 4 to "ref" so that you have a text file that looks like the following:
+
+#	ref	LBS1_Hap1_2N_vcf	LBS4_Hap1_2N_vcf	LBS4_Hap2_2N_vcf	LFB8N_Hap1_2N_vcf	LFB8T_normal_Hap1_2N_vcf
+#29	A	A	A	A	A	A
+#364	G	G	G	G	G	G
+#584	A	A	A	A	A	A
+#627	G	G	G	G	G	G
+#663	C	C	C	C	C	C
+#848	G	G	A	A	G	G
+#938	T	T	T	T	T	T
+#1035	C	C	C	C	C	C
+
+########
+# Run the following in R
+########
+
+library(scico)
+library(ggplot2)
+library(ggmsa)
+library(fastreeR)
+library(tidyverse)
+library(dplyr)
+library(ggnewscale)
+library(aplot)
+library("wesanderson")
+library(scales)
+
+
+tree <- read.tree(file="path_to/mito_reads.align.fasta.contree")
 
 
 
