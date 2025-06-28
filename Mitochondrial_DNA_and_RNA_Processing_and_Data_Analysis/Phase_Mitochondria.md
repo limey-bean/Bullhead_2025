@@ -335,3 +335,5 @@ for (ind in individualsT){
 ```{r}
 write_csv(freq_allele, paste0("path to output directory/ALL_2N_vcf_ref_allele_frequencies.csv"))
 ```
+
+### review the output and detemine if there are methodological artifacts. If there are not paired samples for messy heterozygous loci make decisions about calling SNVs.  Modify the fastas if there is a valid reason to do so.
