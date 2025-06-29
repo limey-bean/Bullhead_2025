@@ -29,15 +29,31 @@ cd ${workdir}
 minimap2 -t 1 -ax sr ${ref_genome} ${fin} ${rin} > ${map_name}.sam
 
 ########
-# Use samtools to convert Reads to bam, then sort, update identifiers, subset by mapped reads, and index
+# Use samtools to convert Reads to bam, then sort, update identifiers, subset by mapped reads
 ########
 
 samtools view -S -b ${map_name}.sam -o ${map_name}.bam
 samtools sort ${map_name}.bam -o ${map_name}.sorted.bam
 samtools addreplacerg -r 'ID:UVM' -r 'PL:Illumina' -r 'SM:'${sample_name} -o ${map_name}.sorted.un.bam ${map_name}.sorted.bam
 samtools view -F 0x04  -b ${map_name}.sorted.un.bam > ${map_name}.mito_only.bam
-samtools index ${map_name}.mito_only.bam
 
+
+########
+# remove duplicates  reads
+########
+
+gatk --java-options "-Xms256G -Xmx256G -XX:ParallelGCThreads=16" 
+      MarkDuplicatesSpark \
+      -I ${map_name}.${map_name}.mito_only.bam \
+      -O ${map_name}.marked_duplicates.bam --remove-sequencing-duplicates
+ 
+mv ${map_name}.marked_duplicates.bam ${map_name}.mito_only.bam
+      
+#######
+# Use Samtools to and index
+#######
+
+samtools index ${map_name}.mito_only.bam
 
 ########
 # remove superfluous  reads
