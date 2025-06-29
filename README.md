@@ -40,3 +40,8 @@ Contains scripts to
 Contains
 1. Scripts to parse Human melanoma SNVs.
 2. Data files required to run the script.
+
+## Viral and mitochondrial scripts
+Contains scripts to run
+1. nf-core mag
+2. differential abundance analysis
