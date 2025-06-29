@@ -21,13 +21,18 @@ nextflow run nf-core/mag -r 4.0.0 -profile singularity -resume -params-file nf-p
 ###############
 
 # you need to locate the unmapped reads from the nuclear genome run mapping and convert then from bam to fastq
+mkdir /path_to/DNA_unmapped_repaired/repaired
 
+bedtools bamtofastq -i /path_to_sample_bam.bam -fq /path_to/DNA_unmapped_repaired/repaired/sample_R1.fastq -fq2 /path_to/DNA_unmapped_repaired/repaired/sample_R2.fastq
 
-# I had to repaire the fastq files
+# zip fastq files
+bgzip /path_to/DNA_unmapped_repaired/repaired/*.fastq
+
+# I had to repair the fastq files
 
 nextflow run nf-core/fastqrepair    -profile singularity    --input samplesheet.csv    --outdir ./ -resume  -r dev
 
-
+# samplesheet.csv:
 sample	group	short_reads_1	short_reads_2	long_reads	
 BS1	0	/path_to/DNA_unmapped_repaired/repaired/BS1_1.fastq.gz	/path_to/DNA_unmapped_repaired/repaired/BS1_2.fastq.gz		
 BS4	0	/path_to/DNA_unmapped_repaired/repaired/BS4_1.fastq.gz	/path_to/DNA_unmapped_repaired/repaired/BS4_2.fastq.gz		
