@@ -2,7 +2,13 @@
 
 nextflow run nf-core/mag -r 4.0.0 -profile singularity -resume -params-file nf-params.json
 
-
+#####
+# databases
+####
+# Centrifuge:p+h+v.tar.gz(https://osf.io/5zv8t/;Human-Virus-Bacteria-Archaea 01.2021)
+# gtdbtk:gtdbtk_r202_data.tar.gz(https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/;2021-04-22)
+# Kraken:minikraken2_v2_8GB_201904.tar.gz(ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v2_8GB_201904.tgz)
+# genomad:genomad_db(https://github.com/apcamargo/genomad;version 1.7)
 
 # this is the nf-params.json file:
 
