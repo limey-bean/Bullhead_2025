@@ -1,0 +1,175 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Load R packages
+```{r}
+library(stringr)
+library(dplyr)
+library(reshape)
+library(wesanderson)
+library(tidyverse)
+```
+
+## Load data and modify header depeding of how the data were generated
+
+```{r}
+
+#s_sites <- read.table("latest_delly/2025_latest/merged_130M.PASS.inv_.9_10x.TN.ad.txt", sep = "\t", header = TRUE, comment.char = "") 
+sv_sites <- read.table("path_to_file/*vcf.AD.txt", sep = "\t", header = TRUE, comment.char = "")
+
+
+# Uncomment below if using Sniffles
+#colnames(sv_sites) <- colnames(sv_sites) %>%
+#  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
+#  str_remove("\\.DR.+DV$")                # remove trailing ".AD"
+
+# Uncomment below if using Delly 
+#colnames(sv_sites) <- colnames(sv_sites) %>%
+#  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
+#  str_remove("\\.RR.+RV$")                # remove trailing ".AD"
+
+# if using Haplotype caller
+colnames(sv_sites) <- colnames(sv_sites) %>%
+  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
+  str_remove("\\.AD$")                # remove trailing ".AD"
+
+sv_sites <- sv_sites %>% select(-FB8N,-FB8T,-JR9N, -JR9T,-SB14T,-SB14N,-HC4N,-HC4T)
+
+```
+
+```{r}
+pal4 <- wes_palette("Zissou1", 10, type = "continuous")
+pal2 <- wes_palette("Zissou1", 2, type = "continuous")
+```
+
+```{r}
+
+sv_sites2 <- sv_sites  %>%
+  mutate(across(
+    -c(CHROM, POS, REF, ALT),  # adjust to actual column names to exclude
+    ~ .x %>%
+      str_replace_all("^\\.$", "0,0") %>%                     # replace "." with "0,0"
+      str_split(",", simplify = TRUE) %>%                     # split on comma
+      magrittr::extract(, 2) %>%                              # get second column
+      as.numeric()
+  ))
+
+sv_sites3 <- sv_sites  %>%
+  mutate(across(
+    -c(CHROM, POS, REF, ALT),  # adjust to actual column names to exclude
+    ~ .x %>%
+      str_replace_all("^\\.$", "0,0") %>%                     # replace "." with "0,0"
+      str_split(",", simplify = TRUE) %>%                     # split on comma
+      magrittr::extract(, 1) %>%                              # get second column
+      as.numeric()
+  ))
+
+
+```
+
+```{r}
+# filter for all Ns to be 0, all Ts to be nonzero
+allC_noH <- sv_sites2 %>%
+  filter(if_all(
+    .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
+    .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
+  )) %>%
+  mutate(COUNT=rowSums(.[5:16]!=0
+  )) %>%
+  filter(COUNT != 0
+         ) %>% 
+  select(CHROM,POS,REF,ALT, COUNT) %>%
+  mutate(ID = "allC")
+
+allC_noH_counts <- allC_noH %>% dplyr::count(COUNT)
+
+allC_noH_ref <- sv_sites3 %>%
+  filter(if_all(
+    .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
+    .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
+  ))   %>%
+  mutate(COUNT=rowSums(.[5:16]!=0
+  )) %>%
+  filter(COUNT != 0
+  ) %>% 
+  select(CHROM,POS,REF,ALT, COUNT) %>%
+  mutate(ID = "allC_ref")
+
+allC_noH_ref_counts <- allC_noH_ref %>% dplyr::count(COUNT)
+
+```
+
+```{r}
+
+
+#### normal
+
+allN_noH <- sv_sites2 %>%
+  filter(if_all(
+    .cols =!ends_with("N") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
+    .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
+  )) %>%
+  mutate(COUNT=rowSums(.[5:16]!=0
+  )) %>%
+  filter(COUNT != 0
+  ) %>% 
+  select(CHROM,POS,REF,ALT, COUNT) %>%
+  mutate(ID = "allN")
+
+allN_noH_counts <- allN_noH %>% dplyr::count(COUNT)
+
+allN_noH_ref <- sv_sites3 %>%
+  filter(if_all(
+    .cols = !ends_with("N") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
+    .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
+  ))   %>%
+  mutate(COUNT=rowSums(.[5:16]!=0
+  )) %>%
+  filter(COUNT != 0
+  ) %>% 
+  select(CHROM,POS,REF,ALT, COUNT) %>%
+  mutate(ID = "allN_ref")
+
+allN_noH_ref_counts <- allN_noH_ref %>% dplyr::count(COUNT)
+
+```
+
+```{r}
+
+
+normalsites <- full_join(allN_noH_counts, allN_noH_ref_counts, by="COUNT") %>% mutate(across(where(is.numeric), ~replace_na(., 0))) %>% mutate(Normal_Samples_only = n.y + n.x) %>% select(COUNT, Normal_Samples_only) 
+  
+tumorsites <- full_join( allC_noH_ref_counts,allC_noH_counts, by="COUNT") %>% mutate(across(where(is.numeric), ~replace_na(., 0))) %>% mutate(Tumor_Samples_only = n.y + n.x) %>% select(COUNT, Tumor_Samples_only)
+
+  
+onlysite <- full_join(tumorsites,normalsites, by="COUNT")  #%>% add_row(COUNT=3,Tumor_Samples_only = 0, Normal_Samples_only = 0) 
+onlysite[is.na(onlysite)] <- 0
+
+only <- onlysite[order(as.numeric(as.character(onlysite$COUNT))), ]
+
+site <- only %>% select(-COUNT)
+
+```
+
+```{r}
+meltData <- melt(site) 
+
+
+meltData$shared_by <- c("01_sample","02_samples","03_samples","04_samples","05_samples","06_samples","01_sample","02_samples","03_samples","04_samples","05_samples","06_samples")
+
+ggplot(meltData, aes(fill=shared_by, y=value, x=variable)) + scale_fill_manual(values = pal4)  + geom_bar(position="stack", stat="identity") + theme_bw( )
+
+ggplot(meltData, aes(fill=variable, y=value, x=shared_by)) + scale_fill_manual(values = pal4)  + geom_bar(position="stack", stat="identity") + theme_bw( )
+
+
+
+ggplot(meltData, aes(fill=shared_by, y=value, x=variable)) + scale_fill_manual(values = pal4)  + geom_bar(position="stack", stat="identity") + theme_bw( )
+
+ggplot(meltData, aes(fill=variable, y=value, x=shared_by)) + scale_fill_manual(values = pal2)  + geom_bar(position="stack", stat="identity") + theme_bw( )
+
+ggplot(meltData, aes(fill=variable, y=value, x=shared_by)) + scale_fill_manual(values = pal2)  + geom_bar(position="dodge", stat="identity") + theme_bw( )
+
+
+```
