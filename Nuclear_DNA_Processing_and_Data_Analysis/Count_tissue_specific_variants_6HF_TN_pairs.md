@@ -12,7 +12,7 @@ library(wesanderson)
 library(tidyverse)
 ```
 
-## Load data and modify header depeding of how the data were generated
+## Load data and modify header depeding of how the data were generated - remove LF samples
 
 ```{r}
 
@@ -39,10 +39,15 @@ sv_sites <- sv_sites %>% select(-FB8N,-FB8T,-JR9N, -JR9T,-SB14T,-SB14N,-HC4N,-HC
 
 ```
 
+## Make two color palettes
+
+
 ```{r}
 pal4 <- wes_palette("Zissou1", 10, type = "continuous")
 pal2 <- wes_palette("Zissou1", 2, type = "continuous")
 ```
+
+## Split allele depth by Reference sv_sites3 and Variant alleles sv_sites2
 
 ```{r}
 
@@ -68,6 +73,8 @@ sv_sites3 <- sv_sites  %>%
 
 
 ```
+
+## Find all sites were there are Tumor samples's have a call but Ref is 0 or NA
 
 ```{r}
 # filter for all Ns to be 0, all Ts to be nonzero
@@ -100,6 +107,9 @@ allC_noH_ref <- sv_sites3 %>%
 allC_noH_ref_counts <- allC_noH_ref %>% dplyr::count(COUNT)
 
 ```
+
+## Find all sites were there are Ref samples's have a call but Tumor is 0 or NA
+
 
 ```{r}
 
@@ -136,6 +146,9 @@ allN_noH_ref_counts <- allN_noH_ref %>% dplyr::count(COUNT)
 
 ```
 
+## Count site with normal only or tumor only variants
+
+
 ```{r}
 
 
@@ -152,6 +165,9 @@ only <- onlysite[order(as.numeric(as.character(onlysite$COUNT))), ]
 site <- only %>% select(-COUNT)
 
 ```
+
+## Make figures, and check that sites have counts for all numbers of samples.  If there is a zero count you may have to add rows to only site (e.g. commented out text above)
+
 
 ```{r}
 meltData <- melt(site) 
