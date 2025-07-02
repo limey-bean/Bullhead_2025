@@ -5,8 +5,8 @@
 
 sample=<paired_sample_name> # no T or N
 
-path=/path_to_main_output_dir/
-workdir=${path}/short_read_genome_mapping/mutect2_with_germline_N_som_T/${sample}/
+path=/path_to_main_output_dir/short_read_genome_mapping/mutect2_with_germline_N_som_T/
+workdir=${path}/${sample}/
 
 singularity_path='apptainer -q exec /gpfs1/home/e/g/eguswa/scratch/Containers/gatk_latest.sif'
 ref_genome=/path_to/HL4.scaffolds.fa
@@ -56,36 +56,39 @@ SC6
 for s in ${samples[@]};
 do
   echo ${s}
-  bcftools view -s ${s}T ${path}${s}/${s}T_mutect2_tumor_Filtered.vcf.gz -o ${path}${s}/${s}T_mutect2_Filtered.vcf.gz
-  bcftools view --max-alleles 2 ${path}${s}/${s}T_mutect2_Filtered.vcf.gz > ${path}${s}/${s}T_mutect2_Filtered_no_poly.vcf
-  bcftools view -f 'PASS' ${path}${s}/${s}T_mutect2_Filtered_no_poly.vcf  > ${path}${s}/${s}T_mutect2_PASS.vcf
-  bgzip ${path}/${s}/${s}T_mutect2_PASS.vcf
-  tabix ${path}/${s}/${s}T_mutect2_PASS.vcf.gz
+  bcftools view -s ${s}T ${workdir}/${sample}/${sample}T_mutect2_tumor_Filtered.vcf.gz -o ${workdir}/${sample}/${sample}T_mutect2_Filtered.vcf.gz
+  bcftools view --max-alleles 2 ${workdir}/${sample}/${sample}T_mutect2_Filtered.vcf.gz > ${workdir}/${sample}/${sample}T_mutect2_Filtered_no_poly.vcf
+  bcftools view -f 'PASS' ${workdir}/${sample}/${sample}T_mutect2_Filtered_no_poly.vcf  > ${workdir}/${sample}/${sample}T_mutect2_PASS.vcf
+  bgzip ${workdir}/${sample}/${sample}T_mutect2_PASS.vcf
+  tabix ${workdir}/${sample}/${sample}T_mutect2_PASS.vcf.gz
 done
 
 #########
-# Extract list of pass variant sites to filter all paired brain and tumor samples
+# Merge Tumor pass vcfs, extract list of pass variant sites from tumor samples
 ########
 
-bcftools merge ${workdir}/${sample}T_mutect2_tumor_Filtered.vcf.gz -Oz -o ten_mutect_TN_merged_files.vcf.gz
+bcftools merge ${workdir}/*T_mutect2_tumor_Filtered.vcf.gz -Oz -o Tumor_only_PASS.vcf.gz
+
+bcftools query -H -f '%CHROM %POS\n' Tumor_only_PASS.vcf.gz > mutect2_pass_somatic_sites.txt
 
 
-reheader.txt 
-FB8N	FB8Nm
-HC2N	HC2Nm
-HC4N	HC4Nm
-JR9N	JR9Nm
-SB14N	SB14Nm
-SC6N	SC6Nm
-SC7N	SC7Nm
-SML1N	SML1Nm
-SML4N	SML4Nm
+#########
+# Filter TN from the GATK haplotyped and genotyped vcf to get the variants for the brain samples as well as the Tumor samples.
+########
 
-bcftools reheader --samples reheader.txt -o ten_mutect_TN_merged_reheader.vcf.gz ten_mutect_TN_merged_files.vcf.gz
-tabix ten_mutect_TN_merged_reheader.vcf.gz
+bcftools view -s FB8N,HC2N,HC4N,JR9N,MA1N,SB14N,SC6N,SC7N,SML1N,SML4N,FB8T,HC2T,HC4T,JR9T,MA1T,SB14T,SC6T,SC7T,SML1T,SML4T /path_to/HL4_0001-0100_snps_indels_clean_0.9_10x.vcf.gz -o ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels.vcf.gz
 
-bcftools view ten_mutect_TN_merged_reheader.vcf.gz --regions HL4_0001,HL4_0002,HL4_0003,HL4_0004,HL4_0005,HL4_0006,HL4_0007,HL4_0008,HL4_0009,HL4_0010,HL4_0011,HL4_0012,HL4_0013,HL4_0014,HL4_0015,HL4_0016,HL4_0017,HL4_0018,HL4_0019,HL4_0020,HL4_0021,HL4_0022,HL4_0023,HL4_0024,HL4_0025,HL4_0026,HL4_0027,HL4_0028,HL4_0029,HL4_0030,HL4_0031,HL4_0032,HL4_0033,HL4_0034,HL4_0035,HL4_0036,HL4_0037,HL4_0038,HL4_0039,HL4_0040,HL4_0041,HL4_0042,HL4_0043,HL4_0044,HL4_0045,HL4_0046,HL4_0047,HL4_0048,HL4_0049,HL4_0050,HL4_0051,HL4_0052,HL4_0053,HL4_0054,HL4_0055,HL4_0056,HL4_0057,HL4_0058,HL4_0059,HL4_0060,HL4_0061,HL4_0062,HL4_0063,HL4_0064,HL4_0065,HL4_0066,HL4_0067,HL4_0068,HL4_0069,HL4_0070,HL4_0071,HL4_0072,HL4_0073,HL4_0074,HL4_0075,HL4_0076,HL4_0077,HL4_0078,HL4_0079,HL4_0080,HL4_0081,HL4_0082,HL4_0083,HL4_0084,HL4_0085,HL4_0086,HL4_0087,HL4_0088,HL4_0089,HL4_0090,HL4_0091,HL4_0092,HL4_0093,HL4_0094,HL4_0095,HL4_0096,HL4_0097,HL4_0098,HL4_0099,HL4_0100 > ten_mutect_TN_merged_reheader1-100.vcf
 
-bgzip ten_mutect_TN_merged_reheader1-100.vcf
-tabix ten_mutect_TN_merged_reheader1-100.vcf.gz 
+vcftools --gzvcf ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels.vcf.gz --max-missing 0.9 --minDP 10 --positions mutect2_pass_somatic_sites.txt --recode --out ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS
+
+mv ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.recode.vcf.gz ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.vcf.gz
+
+bgzip ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.vcf.gz
+tabix ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.vcf.gz
+
+######
+# Use BCFtools to extract allele frequency
+#####
+
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.vcf.gz > ${path}/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.vcf.AD.txt
 
