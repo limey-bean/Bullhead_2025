@@ -24,7 +24,6 @@ Contains scripts to
 3. Build phylogenetic trees using
   * SNVs
   * Mitochondrial reads
-4. Identify SNPs
 
 ## Nuclear DNA Processing and Data Analysis
 Contains scripts to
