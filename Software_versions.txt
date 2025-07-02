@@ -1,1 +1,36 @@
 The following versions of software were used for this study:
+
+get_organelle/1.7.7.0
+mtgrasp/1.1.8
+samtools/1.19.2
+gatk/4.5.0.0
+dorado/0.7.2
+bedtools2/2.31.1
+PEGASUS/https://github.com/jaxlub/PEGASUS
+funannotate/1.8.16   
+seqkit/2.9.0
+mafft/7.526
+iqtree2/1.6.7
+snp-sites/2.5.1
+nextflow/25.04.3
+apptainer/1.3.4
+vcftools/0.1.16
+bcftools/1.19
+minimap2/2.26-r1175
+
+
+
+
+R 
+R Packages
+library(rJava)
+library(scico)
+library(ggplot2)
+library(ggmsa)
+library(fastreeR)
+library(tidyverse)
+library(dplyr)
+library(ggnewscale)
+library(aplot)
+library("wesanderson")
+library(scales)
