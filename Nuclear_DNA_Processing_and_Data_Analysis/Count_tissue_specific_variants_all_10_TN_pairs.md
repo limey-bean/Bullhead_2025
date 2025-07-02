@@ -3,6 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+## Load R packages
 ```{r}
 library(stringr)
 library(dplyr)
@@ -11,44 +12,45 @@ library(wesanderson)
 library(tidyverse)
 ```
 
+
+## Load data and modify header depeding of how the data were generated
+
 ```{r}
 
 
-#mutectT <- read.table("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/mito_N1_N2/vcf_parse_2N/mito_2n_TN.vcf.AD.txt", sep = "\t", header = TRUE, comment.char = "") 
+sv_sites <- read.table("path_to_file/*vcf.AD.txt", sep = "\t", header = TRUE, comment.char = "") 
 
-#mutectT <- read.table("longSV/sniffles_al_INV_AD.txt", sep = "\t", header = TRUE, comment.char = "") 
+# Uncomment below if using Sniffles
+#colnames(sv_sites) <- colnames(sv_sites) %>%
+#  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
+#  str_remove("\\.DR.+DV$")                # remove trailing ".AD"
 
-#mutectT <- read.table("latest_delly/2025_latest/merged_130M.PASS.inv_.9_10x.TN.ad.txt", sep = "\t", header = TRUE, comment.char = "") 
-
-#mutectT <- read.table("mutect2-nuc/all_hap_mut.ad.txt", sep = "\t", header = TRUE, comment.char = "") 
-
-#mutectT <- read.table("mutect2-nuc/Haplotyped_TN_pairs_HL4_0001-0100_snps_indels_90per_10x_PASS.ad.txt", sep = "\t", header = TRUE, comment.char = "") 
-
-
-colnames(mutectT) <- colnames(mutectT) %>%
-  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
-  str_remove("\\.DR.+DV$")                # remove trailing ".AD"
-
-#colnames(mutectT) <- colnames(mutectT) %>%
+# Uncomment below if using Delly 
+#colnames(sv_sites) <- colnames(sv_sites) %>%
 #  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
 #  str_remove("\\.RR.+RV$")                # remove trailing ".AD"
 
-#colnames(mutectT) <- colnames(mutectT) %>%
- # str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
-  #str_remove("\\.AD$")                # remove trailing ".AD"
+# if using Haplotype caller
+colnames(sv_sites) <- colnames(sv_sites) %>%
+  str_remove("^X\\.\\.?\\d+\\.") %>%  # remove leading "X.2." or "X..1."
+  str_remove("\\.AD$")                # remove trailing ".AD"
 
-mutectT <- mutectT #%>% select(-FB8N,-FB8T,-JR9N, -JR9T,-SB14T,-SB14N,-HC4N,-HC4T)
+sv_sites <- sv_sites 
 
 ```
+
+## Make two color palettes
 
 ```{r}
 pal4 <- wes_palette("Zissou1", 10, type = "continuous")
 pal2 <- wes_palette("Zissou1", 2, type = "continuous")
 ```
 
+
+## Split allele depth by Reference sv_sites3 and Variant alleles sv_sites2
 ```{r}
 
-mutect2T <- mutectT  %>%
+sv_sites2 <- sv_sites  %>%
   mutate(across(
     -c(CHROM, POS, REF, ALT),  # adjust to actual column names to exclude
     ~ .x %>%
@@ -58,7 +60,7 @@ mutect2T <- mutectT  %>%
       as.numeric()
   )) 
 
-mutect3T <- mutectT  %>%
+sv_sites3 <- sv_sites  %>%
   mutate(across(
     -c(CHROM, POS, REF, ALT),  # adjust to actual column names to exclude
     ~ .x %>%
@@ -68,19 +70,13 @@ mutect3T <- mutectT  %>%
       as.numeric()
   )) 
 
-#mito
-#mutect2T <- mutect2T%>%
-  #mutate(across(.cols= c(5:24),.fns = function(x) ifelse(x <= 6,0,x)))
-
-#mutect3T <- mutect3T%>%
-  #mutate(across(.cols= c(5:24),.fns = function(x) ifelse(x <= 6,0,x)))
-
-
 ```
+
+## Find all sites were there are Tumor samples's have a call but Ref is 0 or NA
 
 ```{r}
 # filter for all Ns to be 0, all Ts to be nonzero
-allC_noHt <- mutect2T %>%
+allC_noHt <- sv_sites2 %>%
   filter(if_all(
     .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -89,7 +85,7 @@ allC_noHt <- mutect2T %>%
   #mutate(COUNT=rowSums(.[5:16]!=0
   ))
 
-allC_noH <- mutect2T %>%
+allC_noH <- sv_sites2 %>%
   filter(if_all(
     .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -104,7 +100,7 @@ allC_noH <- mutect2T %>%
 
 allC_noH_counts <- allC_noH %>% count(COUNT)
 
-allC_noH_reft <- mutect3T %>%
+allC_noH_reft <- sv_sites3 %>%
   filter(if_all(
     .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -115,7 +111,7 @@ allC_noH_reft <- mutect3T %>%
   filter(COUNT != 0
   )
 
-allC_noH_ref <- mutect3T %>%
+allC_noH_ref <- sv_sites3 %>%
   filter(if_all(
     .cols = !ends_with("T") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -132,12 +128,15 @@ allC_noH_ref_counts <- allC_noH_ref %>% count(COUNT)
 
 ```
 
+
+## Find all sites were there are Ref samples's have a call but Tumor is 0 or NA
+
 ```{r}
 
 
 #### normal
 
-allN_noH <- mutect2T %>%
+allN_noH <- sv_sites2 %>%
   filter(if_all(
     .cols =!ends_with("N") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -152,7 +151,7 @@ allN_noH <- mutect2T %>%
 
 allN_noH_counts <- allN_noH %>% count(COUNT)
 
-allN_noH_ref <- mutect3T %>%
+allN_noH_ref <- sv_sites3 %>%
   filter(if_all(
     .cols = !ends_with("N") & !c("CHROM", "POS", "REF", "ALT"),  # Exclude CHROM, POS, REF, ALT manually
     .fns = ~ .x == 0 | is.na(.x)                                 # Keep only if zero or NA
@@ -167,70 +166,10 @@ allN_noH_ref <- mutect3T %>%
 
 allN_noH_ref_counts <- allN_noH_ref %>% count(COUNT)
 
-
-
 ```
 
-```{r, eval=FALSE}
-pos1 <- allC_noHt %>% filter(COUNT > 0) %>% select("POS","COUNT")
-pos2 <- allC_noH_reft %>% filter(COUNT > 0) %>% select("POS","COUNT")
 
-pos <- rbind(pos1,pos2) %>% arrange
-
-mutectTtumorsitesRef <- left_join(pos,mutect2T)
-mutectTtumorsitesALT <- left_join(pos,mutect3T) 
-
-Tref <- mutectTtumorsitesRef %>% select(c(6:25))
-Tref <- as.matrix(Tref)
-Talt <- mutectTtumorsitesALT %>% select(c(6:25))
-Talt <- as.matrix(Talt)
-
-
-
-Ttot <- Talt + Tref
-TAltfreq <- Talt / Ttot
-TReffreq <- Tref / Ttot
-
-TAltfreq <- as.data.frame(TAltfreq)
-TReffreq <- as.data.frame(TReffreq)
-
-
-TAltfreq <- cbind(pos,as.data.frame(TAltfreq))
-TReffreq <- cbind(pos,as.data.frame(TReffreq))
-
-
-
-
-
-ref_int <- TReffreq %>% filter(POS == 1718 | POS == 4626 | POS == 12895)
-
-tumorsitesfreq <- rbind(TAltfreq, ref_int)
-
-write.csv(tumorsitesfreq, file="~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/mito_N1_N2/vcf_parse_2N/may2025-92/tumorsites_freq.csv")
-
-tumAD <- left_join(pos,mutectT)
-
-write_delim(tumAD, file="~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/mito_N1_N2/vcf_parse_2N/may2025-92/tumorsites_AD.tsv", col_names =TRUE, delim="\t")
-
-```
-
-```{r, eval=FALSE}
-all_pos <- mutect2T %>% select("CHROM","POS")
-
-ref_all <- mutect2T %>% select(c(5:24)) 
-alt_all <- mutect3T %>% select(c(5:24)) 
-ref_all <- as.matrix(ref_all) 
-alt_all <- as.matrix(alt_all)
-
-tot <- alt_all + ref_all 
-Altfreq <- alt_all / tot 
-Reffreq <- ref_all / tot
-
-Altfreq <- cbind(all_pos,as.data.frame(Altfreq)) 
-Reffreq <- cbind(all_pos,as.data.frame(Reffreq))
-
-plot(Altfreq$SC7N ~ Altfreq$SC7T)
-```
+## Count site with normal only or tumor only variants
 
 ```{r}
 
@@ -250,13 +189,15 @@ site <- only %>% select(-COUNT)
 
 ```
 
+## Make figures, and check that sites have counts for all numbers of samples.  If there is a zero count you may have to add rows to only site (e.g. commented out text above)
+
 ```{r}
 meltData <- melt(site) 
 
 
 meltData$shared_by <- c("01_sample","02_samples","03_samples","04_samples","05_samples","06_samples","07_samples","08_samples","09_samples","10_samples","01_sample","02_samples","03_samples","04_samples","05_samples","06_samples","07_samples","08_samples","09_samples","10_samples")
 
-#meltData$shared_by <- c("01_sample","02_samples","03_samples","04_samples","05_samples","06_samples","07_samples","08_samples","01_sample","02_samples","03_samples","04_samples","05_samples","06_samples","07_samples","08_samples")
+
 
 
 ggplot(meltData, aes(fill=shared_by, y=value, x=variable)) + scale_fill_manual(values = pal4)  + geom_bar(position="stack", stat="identity") 
@@ -272,51 +213,6 @@ ggplot(meltData, aes(fill=variable, y=value, x=shared_by)) + scale_fill_manual(v
 ggplot(meltData, aes(fill=variable, y=value, x=shared_by)) + scale_fill_manual(values = pal2)  + geom_bar(position="dodge", stat="identity") 
 
 
-
-
-RVNnsnp <- allN_noH %>% select(CHROM,POS)
-RRNnsnp <-  allN_noH_ref %>% select(CHROM,POS)
-Nsites <- rbind(RVNnsnp,RRNnsnp)
-
-
-RVTnsnp <- allC_noH %>% select(CHROM,POS)
-RRTnsnp <- allC_noH_ref %>% select(CHROM,POS)
-Tsites <- rbind(RVTnsnp,RRTnsnp)
-
-filter_these_sites <- rbind(Nsites,Tsites) %>% group_by(CHROM) %>% distinct( POS, .keep_all = TRUE)
-
-
-allsites_t <- full_join(allC_noH, allC_noH_ref, join_by(CHROM,POS,REF,ALT))
-
-allsites_n <- full_join(allN_noH, allN_noH_ref, join_by(CHROM,POS,REF,ALT))
-
-allsites_t_n <- full_join(allsites_t, allsites_n, join_by(CHROM,POS,REF,ALT))
-
-
-#write.table(filter_these_sites, "mutect2-nuc/clean_som_PASS-6.txt", quote = FALSE, row.names = FALSE, sep ="\t")
-
-```
-
-```{r}
-pos_all <- allsites_t_n %>% select("CHROM","POS")
-
-rsites <- left_join(pos_all,mutect2T) 
-asites <- left_join(pos_all,mutect3T)
-
-ref_all <- rsites %>% select(c(5:24)) 
-alt_all <- asites %>% select(c(5:24)) 
-ref_all <- as.matrix(ref_all) 
-alt_all <- as.matrix(alt_all)
-
-tot <- alt_all + ref_all 
-Altfreq <- alt_all / tot 
-Reffreq <- ref_all / tot
-
-Altfreq <- cbind(pos_all,as.data.frame(Altfreq)) 
-Reffreq <- cbind(pos_all,as.data.frame(Reffreq))
-
-plot(Altfreq$SC7N ~ Altfreq$SC7T)
-plot(Reffreq$SC7N ~ Reffreq$SC7T)
 
 ```
 
