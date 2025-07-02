@@ -69,8 +69,7 @@ bedtools bamtofastq -i ${dir_path}/${sample}/${sample}_no_mito_only.bam -fq ${di
 
 ~/PEGASUS/pegasus.sh \
             -n ${dir_path}/${sample}/Long_reads/HL4_no_mito.fastq.gz \
-            -s1 <path to concatonated short_reads1>  \
-            -s2 <path to concatonated short_reads2> \
+            -s1 <path to directory that contains the concatonated short_reads for the *_R1_001.fastq.gz and *_R2_001.fastq.gz>  \
             -phv ~/PHVindexes\ # centrifuge database for removing contamination
             -b ~/actinopterygii_odb10\ # Busco database for fish
             -qg ~/Ameiurus_melas_genome/GCA_012411365.1_AMELA_1.0_genomic.gff \ # genome of closely related species - for additional scaffolding - we did not use results because A melas has a different number of chromosomes thatn A. nebulosa
