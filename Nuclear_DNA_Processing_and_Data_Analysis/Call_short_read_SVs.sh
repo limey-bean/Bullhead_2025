@@ -1,13 +1,16 @@
+####################
+# Call Structural Variants in short reads using Delly
+# down sampled to 130M reads to include all paired samples and minimize effect of detection using variable number of reads.
+####################
 
-# Extract the sample name for the current $SLURM_ARRAY_TASK_ID
-sample=$(awk -v ArrayTaskID=$SLURM_ARRAY_TASK_ID '$1==ArrayTaskID {print $2}' $config)
-#sample=HC4N
 
-ref=/gpfs1/home/e/g/eguswa/scratch/bullhead/Funannotate/HL4/no_mitochondria/HL4_no_mitochondriaFun_out/annotate_results/Ictalurus_punctatus_HL4.scaffolds.fa
+sample=<sample_name>
+ref_genome=/path_to/HL4.scaffolds.fa
 
-input=/gpfs1/home/e/g/eguswa/scratch/bullhead/is_it_transmissible_cancer/nuclear/short_read_genome_mapping/${sample}/${sample}_mapped.genome_only.bam
+################### Run as a loop of array for all samples #############################
 
-output=/gpfs1/home/e/g/eguswa/scratch/bullhead/is_it_transmissible_cancer/nuclear/delly/downsampled_130M/
+input=/path_to/${sample}/${sample}_mapped.genome_only.bam
+output=/path_to/delly/downsampled_130M/
 
 mkdir -p ${output}
 cd ${output}
@@ -18,29 +21,35 @@ echo ${COUNT}
 FRACTION=$(awk -v COUNT=${COUNT} "BEGIN {print 130000000 / COUNT}") # use awk to calculate fraction
 echo ${FRACTION}
 
+samtools view -b -h -@ 5 -s ${FRACTION} ${input} -o ${output}/${sample}_down.bam
 
-${samtools} view -b -h -@ 5 -s ${FRACTION} ${input} -o ${output}/${sample}_down.bam
+samtools sort -o ${output}/${sample}_down_sorted.bam -@ 5 ${output}/${sample}_down.bam
 
-${samtools} sort -o ${output}/${sample}_down_sorted.bam -@ 5 ${output}/${sample}_down.bam
+samtools index -b -@ 10 ${output}/${sample}_down_sorted.bam
 
-${samtools} index -b -@ 10 ${output}/${sample}_down_sorted.bam
-
-${samtools} view -@ 5 -c ${output}/${sample}_down_sorted.bam >> ${output}/final.counts.txt
+samtools view -@ 5 -c ${output}/${sample}_down_sorted.bam >> ${output}/final.counts.txt
 echo ${sample} >> ${output}/final.counts.txt
 rm ${output}/${sample}_down.bam
 
-${delly} call -o ${output}/${sample}.delly.bcf -q 30 -g ${ref} ${output}/${sample}_down_sorted.bam
+delly call -o ${output}/${sample}.delly.bcf -q 30 -g ${ref} ${output}/${sample}_down_sorted.bam
+
+bcftools view ${output}/${sample}.delly.bcf  > ${output}/${sample}.delly.vcf
+
+################### Run as a loop of array for all samples #############################
+
+bcftools merge ${output}/*.delly.vcf -Oz -o ${output}/merged_130M.PASS.vcf
+
+vcftools --gzvcf  ${output}/merged_130M.PASS.vcf --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
+
+bcftools view -s FB8N,HC2N,HC4N,JR9N,MA1N,SB14N,SC6N,SC7N,SML1N,SML4N,FB8T,JR9T,HC4T,HC2T,MA1T,SML1T,SML4T,SC6T,SC7T,SB14T ${path}/${output}merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.TN.vcf
 
 
-${gatkcon} bcftools view ${output}/${sample}.delly.bcf  > ${output}/${sample}.delly.vcf
+bcftools view -i 'INFO/SVTYPE="INS"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.ins.vcf
+bcftools view -i 'INFO/SVTYPE="INV"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.inv.vcf
+bcftools view -i 'INFO/SVTYPE="DUP"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.dup.vcf
+bcftools view -i 'INFO/SVTYPE="DEL"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.del.vcf
 
-awk ' $0 ~ /^#.*/ && $0 !~ /^##.*/ { split($10, name, "." ); print "CHR", $2, "TYPE", $4, $5, "END", "INS_LEN", ${sample}"_NR", ${sample}"_NV"};
-    $0 !~ /^#.*/ { split($8, info, ";" );
-        split(info[2], type, "=" );
-        split(info[4], end, "=" );
-        split(info[5], inslen, "=" );
-        split($10, counts, ":" );
-        total = counts[11] + counts[12];
-        if($7 ~ "PASS" && info[1] ~ /^PRECISE.*/ && type[2] ~ "INS"){print $1, $2, type[2], $4, $5, end[2], inslen[2], total, counts[12]};
-        if($7 ~ "PASS" && info[1] ~ /^PRECISE.*/ && type[2] !~ "INS"){ print $1, $2, type[2], $4, $5, end[2], 0, total, counts[12]}
-    } ' OFS='\t' ${output}/${sample}.delly.vcf > ${output}/${sample}.delly.table.txt
+
+
+
+
