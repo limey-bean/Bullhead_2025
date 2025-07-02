@@ -6,7 +6,6 @@
 # assign variables and make new directories
 #####
 sample=<sample name>
-
 mito_ref=<path to the mitochondrial reference genome>
 dir_path=<path to longreads minus mitochondria output directory>
 sample_long_reads_bam=<path to the long reads bam file for the sample>
