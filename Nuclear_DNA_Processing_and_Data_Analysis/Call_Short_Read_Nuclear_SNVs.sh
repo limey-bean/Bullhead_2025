@@ -19,19 +19,26 @@ mkdir -p ${workdir}
 cd ${workdir}
 
 ########
-# map to HL4 genome
+# Use minimap2 to map to HL4 genome
 ########
 
-# mapping
 minimap2 -t 1 -ax sr ${ref_genome} ${sample_path}/${sample_name}_clean_R1_001.fastq.gz ${sample_path}/${sample_name}_clean_R2_001.fastq.gz > ${map_name}.sam
 
-# convert to bam
+#########
+# Use samtools to convert to bam
+#########
 samtools view -S -b ${map_name}.sam -o ${map_name}.bam
 
-# sort bam file
+#########
+# Use samtools to sort bam file
+#########
+
 samtools sort ${map_name}.bam -o ${map_name}.sorted.bam
 
-# modify identifiers
+#########
+# Use samtools to modify identifiers
+#########
+
 samtools addreplacerg -r 'ID:UVM' -r 'PL:Singularity' -r 'SM:'${sample_name} -o ${map_name}.sorted.un.bam ${map_name}.sorted.bam
 
 
@@ -43,27 +50,39 @@ rm ${map_name}.sorted.bam
 # sort bam 
 samtools sort ${map_name}.sorted.un.bam -o ${map_name}.sorted.bam
 
-
+#########
 # mark duplicates with gatk
+#########
 gatk --java-options "-Xms256G -Xmx256G -XX:ParallelGCThreads=16" \
     MarkDuplicatesSpark \
           -I ${map_name}.sorted.bam \
           -O ${map_name}.sorted.clean.bam --remove-sequencing-duplicates
-            
-# get mapping stats
+
+
+#########
+# Use samtools to get mapping stats
+#########
+
 samtools flagstat ${map_name}.sorted.clean.bam > ${map_name}.stats_after_mito_mapping.txt
 
+#########
+# Use mosdepth get mapping depth
+#########
 
-# get mapping depth
 mosdepth -t 16 ${sample_name} ${map_name}.sorted.clean.bam
 
   
-# select only mapped bams
+#########
+# Use samtools to select only mapped bams
+#########
+
 samtools view -F 0x04  -b ${map_name}.sorted.clean.bam > ${map_name}.genome_only.bam
 samtools index ${map_name}.genome_only.bam
 
+#########
+# Use samtools to select unmapped ams for virus / microbe hunting
+#########
 
-# select unmapped ams for virus / microbe hunting
 samtools view -f 4  -b ${map_name}.sorted_for_virus_hunting.bam > ${map_name}_not_genome.bam
 samtools index ${map_name}_not_genome.bam
 
@@ -72,8 +91,10 @@ rm ${map_name}.sorted.un.bam
 rm ${map_name}.sorted.bam
 rm ${map_name}.sorted.clean.ba*
 
+########
+# Use GATK to Haplotype
+########
 
-# Haplotype
 gatk --java-options "-Xms200G -Xmx200G -XX:ParallelGCThreads=16" \
     HaplotypeCaller \
           -R ${ref_genome} \
@@ -81,10 +102,12 @@ gatk --java-options "-Xms200G -Xmx200G -XX:ParallelGCThreads=16" \
           -O ./${sample_name}_gatk_2N.vcf \
           -ERC GVCF -ploidy 2
 
-
-# make a genomics database for genotyping
+###############
+# Use GATK to make a genomics database for genotyping and hard filtering
 # Run for each chunk of the genome!!!!!
 ########    - I ran the first 100 Scaffolds independently and merged them at the end!!!!!!!!!!!!!!!!!!
+
+#####################################  MAKE SLURM ARRAY OR UGLY LOOP #####################################
 
 contig=<genome scaffold> #e.g. HL4_0001
 
@@ -174,6 +197,37 @@ gatk --java-options "-Xms48G -Xmx48G -XX:ParallelGCThreads=5" \
       -R ${ref_genome} -V ${workdir}/comb_and_geneotype_VFC_Feb2025/${contig}_snps_indels_filtered.vcf.gz \
       -O ${workdir}/comb_and_geneotype_VFC_Feb2025/${contig}_snps_indels_clean.vcf.gz  --exclude-filtered
       
+#####################################  END MAKE SLURM ARRAY OR UGLY LOOP #####################################
+
+######
+# Use GATK to Merge vcfs
+######
+gatk --java-options "-Xms48G -Xmx48G -XX:ParallelGCThreads=5" \
+    MergeVcfs \
+      I=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001_snps_indels_clean.vcf.gz \
+      I=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0002_snps_indels_clean.vcf.gz \
+      I=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0003_snps_indels_clean.vcf.gz \
+      ...
+      ...
+      I=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0099_snps_indels_clean.vcf.gz \
+      I=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0100_snps_indels_clean.vcf.gz \
+      O=${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean.vcf.gz
 
 
+######
+# Use vcftools to Filter out SNVs that are not found in at least 90% of samples and with at least 10 x coverage - then change name, compress, and index
+######
+
+vcftools --vcf ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean.vcf.gz --minDP 10 --max-missing 0.9  --recode --out ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x
+
+mv ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.recode.vcf ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.vcf
+
+bgzip ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.vcf
+tabix ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.vcf.gz
+
+######
+# Use BCFtools to extract allele frequency
+#####
+
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.vcf.gz > ${workdir}/comb_and_geneotype_VFC_Feb2025/HL4_0001-0100_snps_indels_clean_0.9_10x.AD.txt
 
