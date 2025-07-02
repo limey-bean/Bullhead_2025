@@ -21,16 +21,23 @@ minimap2/2.26-r1175
 
 
 
-R 
-R Packages
-library(rJava)
-library(scico)
-library(ggplot2)
-library(ggmsa)
-library(fastreeR)
-library(tidyverse)
-library(dplyr)
-library(ggnewscale)
-library(aplot)
-library("wesanderson")
-library(scales)
+R/4.4.1(2024-06-14)
+# R packages
+tidytree_0.4.6 
+tidyverse_2.0.0 
+fastreeR_1.8.0
+ggplot2_3.5.2
+ggmsa_1.10.0
+scico_1.5.0
+rJava_1.0-11
+hoardeR_0.10
+vcfR_1.15.0
+scales_1.4.0        
+wesanderson_0.3.7   
+aplot_0.2.5         
+ggnewscale_0.5.1
+dplyr_1.1.4
+bedr_1.1.3 
+stringr_1.5.1
+vtable_1.4.8
+Biostrings_2.72.1
