@@ -22,8 +22,8 @@ Contains scripts to
    * Long read data
 2. Phase Mitochondria
 3. Build phylogenetic trees using
-  * SNVs
   * Mitochondrial reads
+  * SNVs
 
 ## Nuclear DNA Processing and Data Analysis
 Contains scripts to
@@ -39,7 +39,6 @@ Contains scripts to
 ## Human TCGA Scripts
 Contains
 1. Scripts to parse Human melanoma SNVs.
-2. Data files required to run the script.
 
 ## Viral and mitochondrial scripts
 Contains scripts to run
