@@ -35,6 +35,7 @@ Contains scripts to
    * Delly for Short Read DNA
    * Sniffles for Long Read DNA
 3. Count tissue specific variants
+4. Generate Phylogenetic trees from VCF
 
 ## Human TCGA Scripts
 Contains
