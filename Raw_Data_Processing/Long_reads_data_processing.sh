@@ -1,18 +1,9 @@
 ########################################################
 # Basecalling/quality filtering and Demuxing for ONT Longreads was done using dorado.
-# Nanopore sequencers collect sequence and base modification signal data and store it in a pod5 ( or an older version called a fast5 file) file. All fast5 files have to be converted to pod5 files for base calling with newer vesions of dorado.
+# Nanopore sequencers collect sequence and base modification signal data and store it in a pod5 file. 
 # We re-basecalled all long reads with the same version of dorado, but only called one run at a time. Bam files were merged by sample after basecalling.
 
 # all new directories were made prior to running software.
-
-#######
-# convert fast5 data to pod5 data using Pod5 version: 0.3.10
-#######
-sample_name=<sample_name>
-indir_fast5=<path to the fast5 directory>
-outdir_pod5=<path to the pod5 converted fast5 directory>
-
-pod5 convert fast5 ${indir}/*.fast5 --output ${outdir_pod5}/
 
 ############
 # Basecall with dorado version 0.7.2 - dorado-0.7.2-linux-x64
