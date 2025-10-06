@@ -48,18 +48,30 @@ rm ${output}/${sample}_down.bam
 
 delly call -o ${output}/${sample}.delly.bcf -q 30 -g ${ref} ${output}/${sample}_down_sorted.bam
 
+########
+# Merge SVs sites with Delly merge
+###########
+
+delly merge -o sites.bcf *.bcf
+
+########
+# Call SVs with Delly PASS sites
+########
+
+delly call -v ${output}sites.bcf -o ${output}/${sample}.delly.PASS.bcf -q 30 -g ${ref} ${output}/${sample}_down_sorted.bam
+
 
 ########
 # Merge all sample BCFs with bcftools
 ########
 
-bcftools merge ${output}/*.delly.bcf -m both -Oz -o ${output}/merged_130M.bcf
+bcftools merge ${output}/*.delly.PASS.bcf -m id -Oz -o ${output}/merged_130M_PASS.bcf
 
 ########
 # Convert .bcf to vcf with bcftools
 ########
 
-bcftools view ${output}/merged_130M.bcf  > ${output}/merged_130M.vcf
+bcftools view ${output}/merged_130M.PASS.bcf  > ${output}/merged_130M.PASS.vcf
 
 
 ########
