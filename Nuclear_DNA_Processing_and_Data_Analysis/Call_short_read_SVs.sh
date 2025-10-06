@@ -48,25 +48,25 @@ rm ${output}/${sample}_down.bam
 
 delly call -o ${output}/${sample}.delly.bcf -q 30 -g ${ref} ${output}/${sample}_down_sorted.bam
 
+
+########
+# Merge all sample BCFs with bcftools
+########
+
+bcftools merge ${output}/*.delly.bcf -m both -Oz -o ${output}/merged_130M.bcf
+
 ########
 # Convert .bcf to vcf with bcftools
 ########
 
-bcftools view ${output}/${sample}.delly.bcf  > ${output}/${sample}.delly.vcf
+bcftools view ${output}/merged_130M.bcf  > ${output}/merged_130M.vcf
 
-################### Run as a loop of array for all samples #############################
-
-########
-# Merge all sample VCFs with bcftools
-########
-
-bcftools merge ${output}/*.delly.vcf -Oz -o ${output}/merged_130M.PASS.vcf
 
 ########
-# Remove sites from VCF with less than 10X or fewer than 90% of the samples will reads for that site
+# Remove sites from VCF with low quality calls and less than 10X or fewer than 90% of the samples will reads for that site
 ########
 
-vcftools --gzvcf  ${output}/merged_130M.PASS.vcf --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
+vcftools --gzvcf  ${output}/merged_130M.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
 
 
 ########
