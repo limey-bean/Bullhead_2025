@@ -78,7 +78,7 @@ bcftools view ${output}/merged_130M.PASS.bcf  > ${output}/merged_130M.PASS.vcf
 # Remove sites from VCF with low quality calls and less than 10X or fewer than 90% of the samples will reads for that site
 ########
 
-vcftools --gzvcf  ${output}/merged_130M.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
+vcftools --vcf  ${output}/merged_130M.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
 
 
 ########
