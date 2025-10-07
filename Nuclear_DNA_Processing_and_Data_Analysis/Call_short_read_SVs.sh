@@ -30,17 +30,37 @@ echo ${COUNT}
 FRACTION=$(awk -v COUNT=${COUNT} "BEGIN {print 130000000 / COUNT}") # use awk to calculate fraction
 echo ${FRACTION}
 
+## for loop to deal with samples with slightly less depth
+
+if [[ ${FRACTION} > 1 ]]; then
+  
+	cp ${input}  ${output}/${sample}_down_sorted.bam
+        cp ${input}.bai  ${output}/${sample}_down_sorted.bam.bai
+       echo ${sample} >> ${output}/final.counts
+  ${samtools} view -@ 5 -c ${output}/${sample}_down_sorted.bam >> ${output}/final.counts
+
+else
+
+  echo "my_variable is not greater than 1"
+
 #####
 # Using samtools downsample to 130M reads, sort, index and give final counts for bam files 
 #####
 
-samtools view -b -h -@ 5 -s ${FRACTION} ${input} -o ${output}/${sample}_down.bam
-samtools sort -o ${output}/${sample}_down_sorted.bam -@ 5 ${output}/${sample}_down.bam
-samtools index -b -@ 10 ${output}/${sample}_down_sorted.bam
+  ${samtools} view -b -h -@ 5 -s ${FRACTION} ${input} -o ${output}/${sample}_down.bam
+ 
+  ${samtools} sort -o ${output}/${sample}_down_sorted.bam -@ 5 ${output}/${sample}_down.bam
 
-samtools view -@ 5 -c ${output}/${sample}_down_sorted.bam >> ${output}/final.counts.txt
-echo ${sample} >> ${output}/final.counts.txt
-rm ${output}/${sample}_down.bam
+  ${samtools} index -b -@ 10 ${output}/${sample}_down_sorted.bam
+
+  echo ${sample} >> ${output}/final.counts
+
+  ${samtools} view -@ 5 -c ${output}/${sample}_down_sorted.bam >> ${output}/final.counts
+
+  rm ${output}/${sample}_down.bam
+
+fi
+
 
 ########
 # Call SVs with Delly
