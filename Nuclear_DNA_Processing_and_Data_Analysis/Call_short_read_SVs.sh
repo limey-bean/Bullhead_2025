@@ -93,41 +93,33 @@ bcftools merge ${output}/*.delly.PASS.bcf -m id -Oz -o ${output}/merged_130M_PAS
 
 bcftools view ${output}/merged_130M.PASS.bcf  > ${output}/merged_130M.PASS.vcf
 
+########
+# Split VCF by INS, INV, DEL, DUP
+########
+
+bcftools view -i 'INFO/SVTYPE="INS"' ${output}/merged_130M.PASS.vcf > ${output}/merged_130M.PASS.ins.vcf
+bcftools view -i 'INFO/SVTYPE="INV"' ${output}/merged_130M.PASS.vcf > ${output}/merged_130M.PASS.inv.vcf
+bcftools view -i 'INFO/SVTYPE="DUP"' ${output}/merged_130M.PASS.vcf > ${output}/merged_130M.PASS.dup.vcf
+bcftools view -i 'INFO/SVTYPE="DEL"' ${output}/merged_130M.PASS.vcf > ${output}/merged_130M.PASS.del.vcf
+
+
 
 ########
 # Remove sites from VCF with low quality calls and less than 10X or fewer than 90% of the samples will reads for that site
 ########
 
-vcftools --vcf  ${output}/merged_130M.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS_.9_10x
-
-
-########
-# Split VCF by INS, INV, DEL, DUP
-########
-
-bcftools view -i 'INFO/SVTYPE="INS"' ${output}/merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.all.ins.vcf
-bcftools view -i 'INFO/SVTYPE="INV"' ${output}/merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.all.inv.vcf
-bcftools view -i 'INFO/SVTYPE="DUP"' ${output}/merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.all.dup.vcf
-bcftools view -i 'INFO/SVTYPE="DEL"' ${output}/merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.all.del.vcf
-
+vcftools --vcf  ${output}/merged_130M.PASS.ins.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS.ins_.9_10x
+vcftools --vcf  ${output}/merged_130M.PASS.inv.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS.inv_.9_10x
+vcftools --vcf  ${output}/merged_130M.PASS.dup.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS.dup_.9_10x
+vcftools --vcf  ${output}/merged_130M.PASS.del.vcf --remove-filtered-all --max-missing 0.9 --minDP 10 --recode --out ${output}/merged_130M.PASS.del_.9_10x
 
 
 
 ########
-# Subset VCF for only paired Tumor Normal (TN) samples
+# if needed Subset VCF for only paired Tumor Normal (TN) samples
 ########
 
-bcftools view -s FB8N,HC2N,HC4N,JR9N,MA1N,SB14N,SC6N,SC7N,SML1N,SML4N,FB8T,JR9T,HC4T,HC2T,MA1T,SML1T,SML4T,SC6T,SC7T,SB14T ${path}/${output}merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.TN.vcf
-
-
-########
-# Split TN only VCF by INS, INV, DEL, DUP
-########
-
-bcftools view -i 'INFO/SVTYPE="INS"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.ins.vcf
-bcftools view -i 'INFO/SVTYPE="INV"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.inv.vcf
-bcftools view -i 'INFO/SVTYPE="DUP"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.dup.vcf
-bcftools view -i 'INFO/SVTYPE="DEL"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > ${output}/merged_130M.PASS_.9_10x.TN.del.vcf
+bcftools view -S <path_to_sample_list.txt>  ${path}/${output}merged_130M.PASS_.9_10x.recode.vcf > ${output}/merged_130M.PASS_.9_10x.TN.vcf
 
 
 ########
@@ -135,14 +127,9 @@ bcftools view -i 'INFO/SVTYPE="DEL"' ${output}/merged_130M.PASS_.9_10x.TN.vcf > 
 ########
 
 
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.TN.ins.vcf > ${output}/merged_130M.PASS_.9_10x.TN.ins.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.TN.inv.vcf > ${output}/merged_130M.PASS_.9_10x.TN.inv.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.TN.dup.vcf > ${output}/merged_130M.PASS_.9_10x.TN.dup.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.TN.del.vcf > ${output}/merged_130M.PASS_.9_10x.TN.del.vcf.AD.txt
-
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.all.ins.vcf > ${output}/merged_130M.PASS_.9_10x.all.ins.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.all.inv.vcf > ${output}/merged_130M.PASS_.9_10x.all.inv.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.all.dup.vcf > ${output}/merged_130M.PASS_.9_10x.all.dup.vcf.AD.txt
-bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD]\n' ${output}/merged_130M.PASS_.9_10x.all.del.vcf > ${output}/merged_130M.PASS_.9_10x.all.del.vcf.AD.txt
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%RR,%RV]\n' ${output}/merged_130M.PASS.ins_.9_10x.vcf > ${output}/merged_130M.PASS.ins_.9_10x.AD.txt
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%RR,%RV]\n' ${output}/merged_130M.PASS.inv_.9_10x.vcf > ${output}/merged_130M.PASS.inv_.9_10x.AD.txt
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%RR,%RV]\n' ${output}/merged_130M.PASS.dup_.9_10x.TN.dup.vcf > ${output}/merged_130M.PASS.dup_.9_10x.AD.txt
+bcftools query -H -f '%CHROM\t%POS\t%REF\t%ALT[\t%RR,%RV]\n' ${output}/merged_130M.PASS.del_.9_10x.TN.del.vcf > ${output}/merged_130M.PASS.del_.9_10x.AD.txt
 
 
