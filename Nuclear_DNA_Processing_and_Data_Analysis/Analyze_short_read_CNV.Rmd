@@ -1,0 +1,413 @@
+## this script was adapted from: https://github.com/dellytools/delly/blob/main/R/rd.R
+
+---
+title: "CNV-DELLY2"
+author: "Emily Curd"
+date: "2025-10-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(DNAcopy)
+library(ggplot2)
+library(scales)
+library(gtable)
+library(grid)
+library(dplyr)
+library(ggpubr)
+library(pheatmap)
+library(viridis)
+library(rstatix)
+```
+
+## set sample list
+
+```{r}
+
+samplez=c("HC2N","HC2T","FB8N","FB8T","MA1N","MA1T", "SB14T2", "JR9T3", "SB14N","JR9N","SC6N","SC6T","SC7N","SC7T","SML1N","SML1T","SML4N","SML4T","VP1B","VP1T","VP6B","VP6T","VP7B","VP7T","VP8B","VP8T","ME5B","ME5S","ME7B","ME7S","ME8B","ME8S","2019-10N","2019-10T","2019-1N","2019-1T","2019-3N","2019-3T","2019-4N","2019-4T","2019-5N","2019-5T","2019-7N","2019-7T","2019-8N","2019-8T","ME1B")
+
+```
+
+## Get normalized CNV profiles
+```{r}
+
+for (sample in samplez){
+chrNamesLong = c("HL4_0001","HL4_0002")#,"HL4_0003","HL4_0004","HL4_0005","HL4_0006","HL4_0007","HL4_0008","HL4_0009","HL4_0010","HL4_0011","HL4_0012","HL4_0013","HL4_0014","HL4_0015","HL4_0016","HL4_0017","HL4_0018","HL4_0019","HL4_0020","HL4_0021","HL4_0022","HL4_0023","HL4_0024","HL4_0025","HL4_0026","HL4_0027","HL4_0028","HL4_0029","HL4_0030","HL4_0031","HL4_0032","HL4_0033","HL4_0034","HL4_0035","HL4_0036","HL4_0037","HL4_0038","HL4_0039","HL4_0040","HL4_0041","HL4_0042","HL4_0043","HL4_0044","HL4_0045","HL4_0046","HL4_0047","HL4_0048","HL4_0049","HL4_0050")
+
+xname <- paste0(sample,"X")
+
+
+# Params
+minCN = 0
+sdUNDO = 1.5
+
+# Parse coverage table
+#args = commandArgs(trailingOnly=TRUE)
+#x = read.table(args[1], header=T)
+x = read.table(paste0("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/nuclear/delly/tables/CNV_130/",sample,".cov.gz"), header=T)
+
+# Fix chromosome ordering
+if (sum(x$chr %in% chrNamesLong) > sum(x$chr %in% chrNamesShort)) { chrs = chrNamesLong; } else { chrs = chrNamesShort; }
+x = x[x$chr %in% chrs,]
+x$chr = factor(x$chr, levels=chrs)
+
+assign(xname,x, envir = .GlobalEnv)
+
+# Log-ratio values
+x$pos = (x$start + x$end) / 2
+baseCN = median(x[,6])
+x$logratio = log2(x[,6] / baseCN)
+
+
+# Segmentation
+if (length(args)>1) {
+  # Provided on the command-line
+  seg = read.table(paste0("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/nuclear/delly/tables/CNV_130/",sample,"_cnv.seg.bed"), header=F, sep="\t")
+  colnames(seg) = c("chr", "start", "end", "id", "cn")
+} else {
+  # Segment logR
+  cnaData = CNA(x$logratio, maploc=x$pos, chrom=x$chr, sampleid="Sample", presorted=T)
+  cnaSegments = segment(smooth.CNA(cnaData), undo.splits="sdundo", undo.SD=sdUNDO)
+  seg = data.frame(segments.summary(cnaSegments))
+  colnames(seg) = c("ID", "chr", "start", "end", "num.mark", "seg.mean", "seg.sd", "seg.median", "seg.mad")
+  seg$cn = 2^seg$seg.median * baseCN
+  seg$chr = factor(seg$chr, levels=chrs)
+}
+
+# Whole genome
+maxCN = as.integer(max(x[,6])+1)
+#maxCN = 8
+p = ggplot(data=x, aes(x=start, y=x[,6]))
+p = p + geom_point(pch=21, color="black", fill="black", size=0.5)
+p = p + xlab("Chromosome")
+p = p + ylab("Copy-number")
+p = p + scale_x_continuous(labels=comma)
+if (nrow(seg)) { p = p + geom_segment(data=seg, aes(x=start, y=cn, xend=end, yend=cn), color="#31a354", size=1.2); }
+p = p + facet_grid(. ~ chr, scales="free_x", space="free_x")
+p = p + scale_y_continuous(labels=comma, breaks = c(minCN:maxCN), limits=c(minCN, maxCN))
+p = p + theme_bw()
+p = p + theme(axis.text.x = element_text(angle=45, hjust=1))
+p = p + ggtitle(sample) 
+p
+
+ggsave(p, file=paste0("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/nuclear/delly/tables/CNV_130/",sample,args,"_1-2.wholegenome.png"), width=6, height=3)
+
+}
+
+```
+
+
+## Make pairwise scattter plots from the first two contigs.
+
+```{r}
+
+samples2=c("FB8")
+samples=c("HC2")
+
+newdir<- "~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/nuclear/delly/tables/CNV_130/scatter1-2pearson/"
+
+dir.create(newdir,showWarnings = FALSE)
+
+for (samp in samples2){
+  #an <- paste0("2019-",samp)
+  #a <- paste0("2019.",samp)
+   a <- samp
+  
+  for (sample in samples){
+    
+    #bn <- paste0("2019-",sample)
+    #b <- paste0("2019.",sample)
+    b <- sample
+    
+    if (a==b){
+      print("same")
+    } else {
+    
+    c <- paste0(a,"NX")
+    d <- paste0(a,"TX")
+    e <- paste0(b,"NX")
+    f <- paste0(b,"TX")
+    
+    test <- left_join(eval(as.name(c)),eval(as.name(d)), by=c("chr","start","end"))
+    test <- left_join(test,eval(as.name(e)), by=c("chr","start","end"))
+    test <- left_join(test,eval(as.name(f)), by=c("chr","start","end"))
+    
+    test <- na.omit(test) 
+    
+    
+    x <- paste0(b,"T_CN")
+    xlab <- paste0(b,"T")
+    y <- paste0(b,"N_CN")
+    ylab <- paste0(b,"N")
+    
+    p <- ggplot(test, aes(.data[[x]],.data[[y]])) + 
+      geom_point(alpha = 0.25) + stat_smooth(method = "lm") + geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") + theme_bw() + xlab(xlab) + ylab(ylab) 
+    p
+    p + stat_cor(method = "pearson")
+    
+    ggsave(file=paste0(newdir,x,"vs",y,"_1-2.scatter.png"), width=3, height=3)
+    
+    x <- paste0(a,"T_CN")
+    xlab <- paste0(a,"T")
+    y <- paste0(a,"N_CN")
+    ylab <- paste0(a,"N")
+    
+    p <- ggplot(test, aes(.data[[x]],.data[[y]])) + 
+      geom_point(alpha = 0.25) + stat_smooth(method = "lm") + geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") + theme_bw() + xlab(xlab) + ylab(ylab) 
+    p
+    p + stat_cor(method = "pearson")
+    
+    ggsave(file=paste0(newdir,"TN",x,"vs",y,"_1-2.scatter.png"), width=3, height=3)
+    
+    
+    x <- paste0(a,"N_CN")
+    xlab <- paste0(a,"N")
+    y <- paste0(b,"N_CN")
+    ylab <- paste0(b,"N")
+    
+    p <- ggplot(test, aes(.data[[x]],.data[[y]])) + 
+      geom_point(alpha = 0.25) + stat_smooth(method = "lm") + geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") + theme_bw() + xlab(xlab) + ylab(ylab) 
+    p
+    p + stat_cor(method = "pearson")
+    
+    ggsave(file=paste0(newdir,x,"vs",y,"_1-2.scatter.png"), width=3, height=3)
+    
+    
+    x <- paste0(a,"T_CN")
+    xlab <- paste0(a,"T")
+    y <- paste0(b,"T3_CN")
+    ylab <- paste0(b,"T")
+    
+    p <- ggplot(test, aes(.data[[x]],.data[[y]])) + 
+      geom_point(alpha = 0.25) + stat_smooth(method = "lm") + geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") + theme_bw() + xlab(xlab) + ylab(ylab) 
+    p
+    p + stat_cor(method = "pearson")
+    
+    ggsave(file=paste0(newdir,x,"vs",y,"_1-2.scatter.png"), width=3, height=3)
+    }
+  }
+}
+
+```
+
+# Make a Pearson's correlation heatmap.
+
+```{r}
+
+samplez=c("HC2N","HC2T","FB8N","FB8T","MA1N","MA1T","SC7N","SC7T", "SB14T2", "JR9T3", "SB14N","JR9N","SC6N","SC6T","SML1N","SML1T","SML4N","SML4T","2019-10N","2019-10T","2019-1N","2019-1T","2019-3N","2019-3T","2019-4N","2019-4T","2019-5N","2019-5T","2019-7N","2019-7T","2019-8N","2019-8T")
+
+
+test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+
+
+for (s in samplez){
+  
+    c <- paste0(s,"X")
+
+    test <- full_join(test,eval(as.name(c)), by=c("chr","start","end"))
+    
+}
+
+
+test <- na.omit(test)
+
+test_cn <- test %>% select(contains("_CN"))
+
+ttest_cn <- t(test_cn)
+
+ttest_cn <- as.data.frame(ttest_cn) 
+ttest_cn <- ttest_cn %>% rownames_to_column(var="sample") %>% select(sample)
+
+ttest_cn$samp <- str_remove(ttest_cn$sample, "_CN")
+ttest_cn$samp <- str_remove(ttest_cn$samp, "X")
+ttest_cn$samp <- str_replace(ttest_cn$samp, "2019.","2019-")
+
+#s <- ttest_cn$samp
+
+meta <- read.delim("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/nuclear/delly/tables/cnv.meta.txt", header = TRUE)
+
+labs <- meta$samp
+labs <- as.data.frame(labs)
+
+lab <- (left_join(ttest_cn,meta))
+
+tn <- lab %>% column_to_rownames("sample") %>% select(-samp)
+
+
+
+
+
+spearman_matrix <- cor(test_cn, method = "pearson")
+
+viridis_palette <- viridis(100)
+tcol <- list(Tissue=c(tumor="black",normal="grey80"))
+
+p <- pheatmap(spearman_matrix, color = viridis_palette, labels_col = ttest_cn$samp, labels_row= ttest_cn$samp, annotation_row = tn, annotation_col = tn, annotation_colors = tcol)
+
+p 
+
+ggsave(p,file=paste0(newdir,"downsamp_pearson_1-2.pheat.png"), width=10, height=10)
+```
+
+# Get Pearson's correlation statistics for tumor vs normal pairs, all tumor vs tumor, and all normal vs normal.
+
+
+```{r}
+
+sample=c("HC2","FB8","MA1","SC7", "SC6","SML1","SML4","2019-10","2019-1","2019-3","2019-4","2019-5","2019-7","2019-8")
+
+test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+
+TNdf <- data.frame("var1"=character(),
+                  "var2"=character(),
+                  "cor"=integer(),
+                  "statistic"=integer(),
+                  "p"=double(),
+                  "conf.low"=integer(),
+                  "conf.high"=integer(),
+                  "method"=character()
+                  )
+
+
+
+test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+
+
+for (samp in sample){
+  
+  s <- samp
+  
+
+  print(s)
+
+  test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+    
+  
+  c <- paste0(s,"T3X")
+    
+    test <- full_join(test,eval(as.name(c)), by=c("chr","start","end"))
+    
+    
+    d <- paste0(s,"NX")
+    
+    test <- full_join(test,eval(as.name(d)), by=c("chr","start","end"))
+    
+    test <- na.omit(test)
+    
+    test <- test %>% select(contains("_CN"))
+    cm <- cor_test(test)
+    TNdf <- rbind(TNdf,cm)
+    #print(cm)
+}
+
+
+
+
+
+
+sample=c("SB14","JR9","HC2","FB8","MA1","SC7", "SC6","SML1","SML4","2019-10","2019-1","2019-3","2019-4","2019-5","2019-7","2019-8")
+
+pairs_indices <- combn(length(sample), 2, simplify = FALSE)
+
+test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+
+Ndf <- data.frame("var1"=character(),
+                  "var2"=character(),
+                  "cor"=integer(),
+                  "statistic"=integer(),
+                  "p"=double(),
+                  "conf.low"=integer(),
+                  "conf.high"=integer(),
+                  "method"=character()
+                  )
+
+for (pair in pairs_indices){
+  
+  s <- sample[pair[1]]
+  
+  sa <- sample[pair[2]]
+  
+  print(s)
+  print(sa)
+
+  test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+    
+  
+  c <- paste0(s,"NX")
+    
+    test <- full_join(test,eval(as.name(c)), by=c("chr","start","end"))
+    
+    
+    d <- paste0(sa,"NX")
+    
+    test <- full_join(test,eval(as.name(d)), by=c("chr","start","end"))
+    
+    test <- na.omit(test)
+    
+    test <- test %>% select(contains("_CN"))
+    cm <- cor_test(test)
+    Ndf <- rbind(Ndf,cm)
+    #print(cm)
+}
+
+
+
+
+sample=c("SB14T2","JR9T3","HC2T","FB8T","MA1T","SC7T", "SC6T","SML1T","SML4T","2019-10T","2019-1T","2019-3T","2019-4T","2019-5T","2019-7T","2019-8T")
+
+pairs_indices <- combn(length(sample), 2, simplify = FALSE)
+
+test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+
+Tdf <- data.frame("var1"=character(),
+                  "var2"=character(),
+                  "cor"=integer(),
+                  "statistic"=integer(),
+                  "p"=double(),
+                  "conf.low"=integer(),
+                  "conf.high"=integer(),
+                  "method"=character()
+                  )
+
+for (pair in pairs_indices){
+  
+  s <- sample[pair[1]]
+  
+  sa <- sample[pair[2]]
+  
+  print(s)
+  print(sa)
+
+  test <- data.frame("chr"=character(),"start"=integer(),"end"=integer())
+    
+  
+  c <- paste0(s,"X")
+    
+    test <- full_join(test,eval(as.name(c)), by=c("chr","start","end"))
+    
+    
+    d <- paste0(sa,"X")
+    
+    test <- full_join(test,eval(as.name(d)), by=c("chr","start","end"))
+    
+    test <- na.omit(test)
+    
+    test <- test %>% select(contains("_CN"))
+    cm <- cor_test(test)
+    Tdf <- rbind(Tdf,cm)
+    #print(cm)
+}
+
+
+median(Tdf$cor)
+median(Ndf$cor)
+
+write.table(Tdf,file=paste0(newdir,"tumor_only_1and2_130M.txt"), sep = "\t", quote=FALSE, row.names = FALSE)
+write.table(Ndf,file=paste0(newdir,"normal_only_1and2_130M.txt"), sep = "\t", quote=FALSE, row.names = FALSE)
+write.table(TNdf,file=paste0(newdir,"tumorvsnormal_1and2_130M.txt"), sep = "\t", quote=FALSE, row.names = FALSE)
+
+
+```
+
+
+
