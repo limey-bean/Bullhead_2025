@@ -6,7 +6,7 @@
 # set paths and variables
 ########
 
-sample_name=<name or sampls>
+sample_name=<name of sample>
 ref_genome=/path_to/HL4.scaffolds.fa
 sample_path=/path_to/cleaned_short_reads/
 path=/path_to_general_output/
