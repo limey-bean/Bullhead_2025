@@ -1,0 +1,141 @@
+---
+title: "SNP Dists"
+author: "Emily Curd"
+date: "2025-09-19"
+output: html_document
+---
+
+# Load Libs
+
+```{r}
+
+library(tidyverse)
+library(dplyr)
+library(pheatmap)
+library(readr)
+library(rlang)
+library(heatmaply)
+library(ggtree)
+library(treeio)
+library(tidytree)
+library(ape)
+library(scico)
+library(ggplot2)
+library(phylepic)
+library(dendextend)
+library(MoMAColors)
+library(dendsort)
+library(gridExtra)
+library(circlize)
+library(ComplexHeatmap)
+```
+
+```{r}
+
+x <- read.dna("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/heteroplasmy/heteroplasmy_seqs_aln.fasta", format = "fasta")
+
+snpmatI <- dist.dna(x, model = "indelblock", as.matrix = TRUE, pairwise.deletion=FALSE)
+snpmatS <- dist.dna(x, model = "N", as.matrix = TRUE, pairwise.deletion=FALSE)
+
+
+snpmat0 <- snpmatI + snpmatS
+```
+
+```{r}
+
+
+#outpath="~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/VT_tumor_mitos/SNP_dists/"
+
+#dir.create(outpath, showWarnings = FALSE)  
+
+#snpmat <-  read.table("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/heteroplasmy/heteroplasmy_fig.align.dist_SNV.tsv", header=TRUE)
+
+tree_labels <- read.csv("~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/meta_all_mitos.csv",  header = TRUE)
+
+snpmatt <- as.data.frame(snpmat0)
+
+snpmat <- tibble::rownames_to_column(snpmatt, "sequence_name")
+
+lab <- snpmat %>% select(sequence_name)
+
+#snpmat <- tibble::column_to_rownames(snpmatt, "sequence_name") 
+
+snp_meta <- left_join(lab,tree_labels)
+
+```
+
+```{r}
+
+labs <- snp_meta$sample
+
+distmat <- as.matrix(snpmat0)
+
+mat <- as.dist(snpmat0)
+
+snpmat <- as.data.frame(mat)
+
+snpmat <- tibble::rownames_to_column(snpmat, "SNP_name") 
+
+snp_meta <- left_join(lab,tree_labels)
+
+
+p <- pheatmap::pheatmap(mat,
+              cluster_rows = T, cluster_cols = T,
+          display_numbers = TRUE, number_format = "%.f", size=2,
+           number_color = "grey0", color = hcl.colors(36, "Tropic"))
+           
+           #hcl.colors(40, "PurpOr"))
+
+ggsave(p,file="~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/heteroplasmy/het_SNPdists.pdf",width = 15,height = 15,
+  units = c("in") ) 
+```
+
+# 
+
+```{r}
+#  heatmap with histogram
+
+look <- snp_meta %>% select(SNP_name,sample,percent_mito, TumorP,Sample_type)
+
+
+rownames(distmat) = look$sample
+colnames(distmat) = look$sample
+
+p_hist <- ggplot(look, aes(x=percent_mito, y= SNP_name)) + 
+  geom_bar(stat = "identity")
+
+p_hist
+
+SNPs <- distmat
+
+row_ha = rowAnnotation(sample = look$TumorP,
+                       type = look$Sample_type,
+                       col = list(sample=c("normal" = "#F11B00", "T-normal" = "orange2","tumor"="#3A9AB2"),
+                       type=c("brain" = "bisque", "skin" = "bisque3")),
+                       "Row Bars" = anno_barplot(look$percent_mito, 
+                            baseline = 0, 
+                            axis = TRUE,
+                            width = unit(2, "cm")),
+  width = unit(3, "cm")
+  )
+
+
+col_fun = colorRamp2(c(0,2,40), c("grey0", "grey30", "grey99"))
+#col_fun(seq(-3, 3))
+
+ch <- ComplexHeatmap::Heatmap(SNPs,name="SNPs", right_annotation = row_ha, col = col_fun,
+                        cell_fun = function(j, i, x, y, width, height, fill) {
+            # Add a white background for the text
+            grid.rect(x = x, y = y, width = width, height = height, 
+                      gp = gpar(col = NA, fill = "white", alpha = 0.5))
+            # Add the text (the value from the matrix)
+            grid.text(distmat[i, j], x, y, 
+                      gp = gpar(fontsize = 8, col = "black"))
+        })
+
+ch
+
+pdf(file="~/Documents/UVM_Projects/Bullhead_transmissible_cancer_adventure/Sep2025_paper_figs/mitos/heteroplasmy/heteroplasmy_fig.align_complexheatmap1.pdf",width = 15,height = 15) 
+   ch
+dev.off()
+```
