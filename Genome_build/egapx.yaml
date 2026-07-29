@@ -1,0 +1,233 @@
+input:
+  busco_lineage: actinopterygii_odb10
+  busco_lineage_download: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/busco_downloads/lineages/actinopterygii_odb10
+  cmsearch:
+    files:
+    - /gpfs2/scratch/eguswa/egapx/egapx/local_cache/cmsearch/1/Rfam.seed
+    - /gpfs2/scratch/eguswa/egapx/egapx/local_cache/cmsearch/1/rfam1410.cm
+    - /gpfs2/scratch/eguswa/egapx/egapx/local_cache/cmsearch/1/rfam1410_amendments.xml
+  genome: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/sra_dir/A_nebulosus_HL4.scaffolds.fa
+  genome_size_threshold: 2000000000
+  gnomon_filtering_scores_file:
+  - /gpfs2/scratch/eguswa/egapx/egapx/local_cache/misc/2/added_scores_general.txt
+  - /gpfs2/scratch/eguswa/egapx/egapx/local_cache/misc/2/added_scores_RNAseq.txt
+  hmm: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/gnomon/2/hmm_parameters/7998.params
+  long_reads_metadata: /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/sra_metadata.dat
+  max_intron: 1200000
+  name_cleanup_rules_file: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/misc/2/name_cleanup_rules.txt
+  ortho:
+    genomic.fna: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/ortholog_references/3/7955/current/genomic.fna.gz
+    genomic.gff: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/ortholog_references/3/7955/current/genomic.gff.gz
+    name_from.rpt: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/ortholog_references/3/7955/name_from_ortholog.rpt
+    protein.faa: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/ortholog_references/3/7955/current/protein.faa.gz
+    taxid: 7955
+  prot_denylist: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/reference_sets/3/swissprot_organelle_bacteria.gi
+  proteins: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/target_proteins/2/7898.faa.gz
+  proteins_trusted: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/target_proteins/2/7898.trusted_proteins.gi
+  reference_sets: /gpfs2/scratch/eguswa/egapx/egapx/local_cache/reference_sets/3/swissprot.asnb.gz
+  short_reads:
+  - - vt103
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt103_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt103_R2.fastq.gz
+  - - vt105
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt105_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt105_R2.fastq.gz
+  - - vt205
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt205_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt205_R2.fastq.gz
+  - - vt214
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt214_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt214_R2.fastq.gz
+  - - vt218
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt218_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt218_R2.fastq.gz
+  - - vt229R
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt229R_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt229R_R2.fastq.gz
+  - - vt230
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt230_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt230_R2.fastq.gz
+  - - vt240
+    - - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt240_R1.fastq.gz
+      - /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/local_cache/sra_dir/vt240_R2.fastq.gz
+  short_reads_metadata: /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/sra_metadata.dat
+  symbol_format_class: alllow
+  taxid: 27778
+  train_hmm: true
+tasks:
+  align_filter_sa:
+    align_filter: -filter 'rank=1 OR (pct_identity_gapopen_only > 58 AND (pct_coverage
+      > 50 OR align_length_ungap > 1000))' -ifmt seq-align
+  align_sort_sa:
+    align_sort: -k subject,subject_start,-subject_end,subject_strand,query,query_start,-query_end,query_strand,-num_ident,gap_count
+  annot_builder:
+    annot_builder: ''
+  annotwriter:
+    annotwriter: ''
+  bam_bin_and_sort:
+    bam_bin: -avg-size-per-bin 200000000 -file-pattern 'bin#.bam' -exclude-organelle
+  bam_strandedness:
+    rnaseq_divide_by_strandedness: -min-aligned 1000000 -min-unambiguous 200 -min-unambiguous-pct
+      2 -percentage-threshold 98
+  best_aligned_prot:
+    best_placement: -asm_alns_filter 'reciprocity = 3'
+  best_protein_hits:
+    align_filter: -filter 'pct_coverage >= 50'
+    align_sort: -filter 'pct_coverage >= 50' -group 1 -ifmt seq-align-set -k query,-bit_score,slen,-align_length
+      -ofmt seq-align-set -top 1
+  chainer_sort_alignments:
+    align_sort: -ifmt seq-align  -k subject,subject_start,-subject_end,subject_strand,query,query_start,-query_end,query_strand,-num_ident,gap_count
+  chainer_wnode:
+    chainer_wnode: -altfrac 80.0 -capgap 5 -cdsbonus 0.05 -composite 10000 -end-pair-support-cutoff
+      0.1 -endprotfrac 0.05 -filters 'remove_single_exon_est_models remove_single_exon_noncoding_models'
+      -high-identity 0.98 -hmaxlen 0.25 -hthresh 0.02 -i3p 14.0 -i5p 7.0 -lenpen 0.005
+      -longenoughcds 900 -max-extension 20 -min-consensus-support 2 -min-edge-coverage
+      5 -min-non-consensussupport 10 -min-support-fraction 0.03 -minex 10 -mininframefrac
+      0.95 -minlen 225 -minpolya 6 -minprotfrac 0.9 -minscor 40.0 -minsupport 3 -minsupport_mrna
+      1 -minsupport_rnaseq 5 -mrnaCDS use_objmgr -oep 10 -protcdslen 450 -sharp-boundary
+      0.2 -tolerance 3 -trim 6 -utrclipthreshold 0.01 -fillgenomicgaps -filterest
+      -filtermrna -filterprots -opposite -collapsest
+    gpx_make_outputs: -default-output-name chains -slices-for affinity -sort-by affinity
+    input_aligns_sort: merge_only
+    submit_chainer: -minimum-abut-margin 20 -separate-within-introns
+  cmsearch:
+    enabled: false
+    num_batches: 16
+  convert_annotations:
+    annotwriter_gff: ''
+    annotwriter_gtf: ''
+  convert_from_bam:
+    sam2asn: -filter 'pct_identity_gap >= 95' -ofmt seq-align-compressed -collapse-identical
+      -no-scores
+  convert_summary_files:
+    convert_summary_files: ''
+  diamond_identify:
+    diamond: -query-fmt seq-ids -subject-fmt seq-ids -output-prefix hits -ofmt seq-align-set
+    diamond_blastp: --sam-query-len --comp-based-stats 1 --evalue 0.0001 --very-sensitive
+      --masking 1 --unal 0
+  diamond_orthology:
+    diamond: -ofmt seq-align-set -query-fmt seq-ids -subject-fmt seq-ids -output-prefix
+      hits
+    diamond_blastp: --sam-query-len --very-sensitive --unal 0 --max-target-seqs 100
+      --comp-based-stats 0 --masking 0
+  extract_products_from_models:
+    extract_products: ''
+  filter_est_align:
+    align_filter: -filter '((matches >= 100 && splices > 0) || (matches >= 250 &&
+      splices == 0)) && product_coverage >= 0.35 && exon_identity >= 0.85 && consensus_splices
+      >= MUL(SUB(exon_count,1),2) && ((max_intron_len < 200000 && (pct_identity_ungap
+      < 98 || pct_coverage < 90)) || max_intron_len < 1300000) && SUB(subject_end,subject_start)<5000000
+      && rank == 1'
+    align_sort: -k subject,subject_start,-subject_end,subject_strand,query,query_start,-query_end,query_strand,-num_ident,gap_count
+  final_asn_markup:
+    final_asn: -annot-provider 'GenBank submitter' -annot-pipeline 'NCBI EGAPx' -annot-software-version
+      0.4.1-alpha -annot-name GB_2025_08_01 -annot-date 08/01/2025
+  find_orthologs:
+    find_orthologs: ''
+  gc_makeblastdb:
+    gc_makeblastdb: ''
+  generate_fasta_from_annots:
+    gnomon_asn2fasta: -it -one-per-gene -primary-only -separate-by-unit
+  get_hmm_params:
+    get_hmm_params: ''
+  getfasta:
+    getfasta: -u full-assembly -bare-accession -use-reference-non-nuclear
+  gnomon_add_filtering_scores:
+    gnomon_filter_models: ''
+  gnomon_biotype:
+    gnomon_biotype: ''
+  gnomon_evidence_summary:
+    gnomon_evidence_summary: ''
+  gnomon_training:
+    gnomon_training: -asn -b
+  gnomon_wnode:
+    annot_wnode: -margin 1000 -mincont 1000 -minlen 225 -mpp 10.0 -ncsp 25 -window
+      200000 -nonconsens -open
+    generic_action_node: -app annot_wnode
+    gpx_qdump: -slices-for affinity -sort-by affinity -unzip '*'
+    gpx_qsubmit: ''
+  locus_link:
+    locus_type: ''
+  locus_track:
+    locus_track: ''
+  make_winmask_stats:
+    make_winmask_stats: -infmt seqids -sformat obinary -smem 1024
+  mask_assm_stats:
+    mask_assm_stats: ''
+  minimap2_index:
+    minimap2_index: -k 15 -w 5
+  minimap2_wnode:
+    gpx_qsubmit: -batch-size 5000 -max-execs 100
+    minimap2-params: -x splice --eqx --MD --cs -Y --sam-hit-only -M 0.9 -p 0.1 -N
+      25
+    minimap2_wnode: -est_colocation_weight 0 -min-entropy 0.65 -workers 1 -generate-stats
+      -output_one_orientation_only -trust_input_collation -with-best-placement
+  miniprot:
+    miniprot: -t 31 -p 0.4 --outs=0.4
+    split_proteins: -n 25000
+  paf2asn:
+    paf2asn: -prosplign-refinement
+  prepare_masks:
+    combine_blast_db: -blast-algo-program 100 -blast-algo-options 'GPIPE&windowmasker%20%2B%20Ribosomal%20RNA&&'
+    combine_blast_db_hardmask: -blast-algo-program 100 -blast-algo-options 'GPIPE&NCBI%2DGPipe%2DHardmask&&Foreign%20Contamination'
+    combine_blast_db_softmask: -blast-algo-program 100 -blast-algo-options 'GPIPE&NCBI%2DGPipe%2DSoftmask&&Foreign%20Contamination'
+    convert_mask: -ifmt contaminant-mask -ofmt blast-mask -types rRNA -exclude-pseudo
+      -blast-algo-options 'GPIPE&Ribosomal%20RNA&&'
+    convert_mask_hardmask: -ifmt blast-mask -ofmt ftable -name 'NCBI-GPipe-Hardmask'
+    convert_mask_softmask: -ifmt blast-mask -ofmt ftable -name 'NCBI-GPipe-Softmask'
+  prosplign_prepare:
+    prosplign_compart: -compartment_penalty 0.5 -max_extent 10000 -maximize coverage
+      -min_compartment_idty 0.5 -min_singleton_idty 0.65 -prosplign-gaps
+    prosplign_compart_filter: -max_compart_count 25 -min_prot_coverage 0.35 -sufficient_compart_length
+      -1
+  prosplign_wnode:
+    gpx_qdump: -unzip '*'
+    gpx_qsubmit: -NxM-threshold 10000 -affinity subject
+    prosplign_wnode: -backlog 1 -compartment_penalty 0.5 -cut_flank_partial_codons
+      true -fill_holes false -flank_positives 55 -frameshift_opening 30 -gap_extension
+      1 -gap_opening 10 -intron_AT 25 -intron_GC 20 -intron_GT 15 -intron_non_consensus
+      34 -inverted_intron_extension 1000 -max_bad_len 45 -max_extent 10000 -maximize
+      coverage -min_compartment_idty 0.5 -min_exon_ident 30 -min_exon_positives 55
+      -min_flanking_exon_len 15 -min_good_len 59 -min_intron_len 30 -min_positives
+      15 -min_singleton_idty 0.65 -start_bonus 8 -stop_bonus 8 -total_positives 70
+  prot_gnomon_prepare:
+    prot_gnomon_prepare: ''
+  rnaseq_collapse:
+    gpx_make_outputs: -default-output-name align -slices-for affinity -sort-by job-id
+      -unzip align
+    gpx_qsubmit: -affinity subject
+    rnaseq_collapse: -backlog 1 -max-jobs 1 -support-non-sra
+    rnaseq_collapse_create_jobs: -alignments-per-job 50000 -min-range 100000
+  setup:
+    convert_genome: force-local-ids
+    convert_proteins: force-local-ids
+  sra_qry:
+    sra_query: ''
+  star_index:
+    STAR: --runThreadN 8
+  star_wnode:
+    star-params: --alignSJoverhangMin 8 --outFilterMultimapNmax 200 --outFilterMismatchNmax
+      50 --genomeLoad NoSharedMemory --outSAMtype SAM --outSAMattributes 'NH HI AS
+      nM NM MD jM jI XS MC' --outSAMprimaryFlag AllBestScore --outFilterMultimapScoreRange
+      50 --seedSearchStartLmax 15 --limitOutSAMoneReadBytes 1000000 --outSJtype None
+      --runRNGseed 777 --outMultimapperOrder Old_2.4 --outSAMorder PairedKeepInputOrder
+    star_wnode: -preserve-star-logs
+  tblastn_align:
+    gpx_make_outputs: -unzip '*'
+    gpx_qsubmit: -max-batch-length 10000  -affinity subject
+    tblastn_wnode: -comp_based_stats 0  -evalue 0.001 -matrix BLOSUM80 -seg yes -soft_masking
+      true -threshold 18 -word_size 6 -db_soft_mask 'NCBI-GPipe-Softmask'
+  tblastn_screen:
+    gpx_make_outputs: -unzip '*'
+    gpx_qsubmit: -batch-size 1
+    tblastn_wnode: -best_hit_overhang 0.1 -best_hit_score_edge 0.1 -comp_based_stats
+      0 -delay 0 -evalue 0.001 -matrix BLOSUM80 -seg yes -soft_masking true -threshold
+      12
+  trnascan:
+    annot_merge: -euk -unique
+    cmsearch_wnode: -exclusive-threshold 100000
+    enabled: false
+  winmask_wnode:
+    gpx_make_outputs: -unzip '*'
+    gpx_qsubmit: -batch-size 1
+    winmasker_wnode: ''
