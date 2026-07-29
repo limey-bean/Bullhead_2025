@@ -120,48 +120,8 @@ rm ${genomedir}${genome}.cleaned.sorted.fa
 
 
 #######################
-# mask assembly....
+# run egapx
 #######################
-
-funannotate \
-  mask -i ${genomedir}${genome}.cleaned.sorted.renamed.fa  --cpus 20 -o ${genomedir}${genome}_masked_assembly.fa
-
-######################
-# train gene model with rnaseq data
-######################
-
-
- funannotate \
-    train -i ${genomedir}${genome}_masked_assembly.fa -o ${genome}Fun_out \
-    --left ${RNAseq_path1R1} ${RNAseq_path2R1} ... \
-    --right ${RNAseq_path1R2} ${RNAseq_path2R2} ... \
-    --stranded RF --jaccard_clip --cpus 20
-
-######################
-# predict genes
-######################
-
- funannotate \
-    predict -i ${genomedir}${genome}_masked_assembly.fa  -o ${genome}Fun_out -s "HL4_no_scaffold_masked_assembly" \
-    --cpus 20 --busco_seed_species zebrafish  --busco_db ${path_toFunannotate_db}/actinopterygii --organism  other --optimize_augustus --database ${path_toFunannotate_db}
-
-######################
-# update model
-######################
-
-funannotate \
-    update -i ${genome}Fun_out --cpus 20
-
-######################
-# annotate final 
-######################
-
-# I ran the ${genome}Fun_out/predict_results/HL4_no_scaffold_masked_assembly.proteins.fa through the eggnog_mapper annotation webserver (http://eggnog-mapper.embl.de) and added the output to:
-mkdir ${genome}Fun_out/eggnog_mapper_out/
-
-funannotate \
-     annotate -i ${genome}Fun_out --cpus 20 --eggnog ${genome}Fun_out/eggnog_mapper_out/out.emapper.annotations \
-     --isolate HL4 --busco_db ${path_toFunannotate_db}/actinopterygii -d ${path_toFunannotate_db} --species "Ameiurus nebulosus"
 
 
 #######
