@@ -124,6 +124,8 @@ rm ${genomedir}${genome}.cleaned.sorted.fa
 #######################
 
 
+nextflow -C /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/egapx_config/singularity.config,/gpfs1/home/e/g/eguswa/scratch/egapx/egapx/ui/assets/config/default.config,/gpfs1/home/e/g/eguswa/scratch/egapx/egapx/ui/assets/config/docker_image.config,/gpfs1/home/e/g/eguswa/scratch/egapx/egapx/ui/assets/config/process_resources.config -log /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/nextflow.log run /gpfs1/home/e/g/eguswa/scratch/egapx/egapx/ui/../nf/ui.nf --output /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out -with-report /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/run.report.html -with-timeline /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/run.timeline.html -with-dag /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/run.dag.dot -with-trace /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/run.trace.txt -params-file /gpfs2/scratch/eguswa/egapx/egapx/bullhead_test/BBH_short_test_out/nextflow/egapx.yaml -resume
+
 #######
 # Index ref genome with samtools and gatk
 ######
