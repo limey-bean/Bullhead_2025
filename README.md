@@ -13,7 +13,7 @@ Contains scripts to build the
 1. Mitochondrial Genome
 2. Draft Nuclear Genome:
    * hybrid assembly with PEGASUS
-   * annotation funnanotate 
+   * annotation egapx 
 
 ## Mitochondrial DNA Processing and Data Analysis
 Contains scripts to
