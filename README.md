@@ -46,5 +46,3 @@ Contains scripts to run
 2. differential abundance analysis
 
 
-https://drive.google.com/drive/folders/18zcUl2O1Saolveouslr2LeDG-3RISIlj?usp=sharing
-https://drive.google.com/drive/folders/1KoKpqtUlc7H6JjoHxPpZTB5xctCkyCPD?usp=sharing
